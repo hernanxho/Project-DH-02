@@ -19,4 +19,15 @@ INSERT INTO regla_politica (id, clave, version, valor, vigente) VALUES
  (UUID(), 'plazo_cierre_horas',   1, JSON_OBJECT('horas', 72), TRUE),
  (UUID(), 'recordatorios_horas',  1, JSON_ARRAY(24, 48), TRUE),
  (UUID(), 'ventana_reapertura_horas', 1, JSON_OBJECT('horas', 48), TRUE),
- (UUID(), 'niveles_urgencia', 1, JSON_ARRAY('Crítica', 'Alta', 'Normal', 'Baja'), TRUE);
+ (UUID(), 'alerta_sin_atencion_horas', 1, JSON_OBJECT('horas', 48), TRUE),
+ (UUID(), 'niveles_urgencia', 1, JSON_ARRAY('Crítica', 'Alta', 'Normal', 'Baja'), TRUE),
+ (UUID(), 'ventana_duplicados_horas', 1, JSON_OBJECT('horas', 24), TRUE),
+ (UUID(), 'matriz_evidencia', 1, JSON_OBJECT(
+   'ASIGNADA->EN_PROGRESO', 'si',
+   'EN_PROGRESO->BLOQUEADA_MATERIALES', 'si',
+   'EN_PROGRESO->BLOQUEADA_ACCESO', 'si',
+   'BLOQUEADA_MATERIALES->EN_PROGRESO', 'opcional',
+   'BLOQUEADA_ACCESO->EN_PROGRESO', 'opcional',
+   'EN_PROGRESO->RESUELTA', 'si',
+   'RESUELTA->EN_PROGRESO', 'no'
+ ), TRUE);

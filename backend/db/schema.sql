@@ -119,6 +119,7 @@ CREATE TABLE evidencia (
 
 CREATE TABLE adjunto (                    -- la base guarda metadatos; el archivo vive en el almacén
   id                   VARCHAR(36) PRIMARY KEY,
+  subido_por           VARCHAR(64) NULL,
   evidencia_id         VARCHAR(36) NULL,
   solicitud_id         VARCHAR(36) NULL,
   nombre_archivo       VARCHAR(255) NOT NULL,
@@ -126,6 +127,7 @@ CREATE TABLE adjunto (                    -- la base guarda metadatos; el archiv
   tamano_bytes         INT NOT NULL,
   ruta_almacen         VARCHAR(512) NOT NULL,
   clasificacion_acceso VARCHAR(16) NOT NULL DEFAULT 'interna',
+  creada_en            DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   CONSTRAINT fk_adj_evi FOREIGN KEY (evidencia_id) REFERENCES evidencia(id),
   CONSTRAINT fk_adj_sol FOREIGN KEY (solicitud_id) REFERENCES solicitud(id)
 ) ENGINE=InnoDB;

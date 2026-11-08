@@ -30,7 +30,7 @@ Node.js 20 o superior, Docker Desktop (para MySQL 8.0.16 o superior) y Git.
 - Contratos públicos entre módulos: [`docs/contratos.md`](docs/contratos.md) (propuesta pendiente de aprobación del equipo).
 - Plantilla de ADR para registrar decisiones y comparar diseño previsto con diseño real: [`docs/adr/0000-plantilla.md`](docs/adr/0000-plantilla.md).
 - Plantillas de issues y Pull Requests: [`.github/`](.github/).
-- El diseño de Evaluación 2 selecciona Node.js y MySQL. El uso de esa pila en lugar del starter Python queda sujeto a la aceptación del profesor (E2-ADR-010).
+- La decisión del equipo para la implementación es Node.js y MySQL, siguiendo el diseño de Evaluación 2. Falta confirmar si el profesor acepta usar esta pila en lugar del starter Python (E2-ADR-010).
 
 ## Puesta en marcha
 
@@ -51,6 +51,12 @@ npm run dev          # http://localhost:5173
 ```
 
 Si cambias `schema.sql` y quieres recrear la base: `docker compose down -v && docker compose up -d`.
+
+Si ya tenías creado el volumen MySQL con el esqueleto anterior, aplica una sola vez la migración [`backend/db/migrations/001-prototype-workflows.sql`](backend/db/migrations/001-prototype-workflows.sql) desde Git Bash:
+
+```bash
+docker exec -i -e MYSQL_PWD=dh02 dh02-mysql mysql -u dh02 dh02 < backend/db/migrations/001-prototype-workflows.sql
+```
 
 ## Comandos útiles (backend)
 
@@ -74,10 +80,10 @@ Si cambias `schema.sql` y quieres recrear la base: `docker compose down -v && do
 | 2. Núcleo de órdenes | ordenes-trabajo, ejecucion-evidencia, auditoria | RF-05 a RF-08, RF-11 |
 | 3. Cierre y vigilancia | notificaciones-plazos, reglas-politicas, reportes-tablero, planificador | RF-02, RF-09, RF-10, RF-12 |
 
-Las rutas pendientes responden `501 NO_IMPLEMENTADO` y están marcadas con su RF en cada `rutas.js`.
-
 El script [`scripts/verificar-entorno.sh`](scripts/verificar-entorno.sh) comprueba herramientas, archivos y dependencias instaladas. Ejecútalo desde Git Bash en la raíz con `bash scripts/verificar-entorno.sh`; cada integrante debe compartir la salida para cerrar la verificación de las tres máquinas.
 
 ### Estado del prototipo
 
-La pantalla de solicitante permite crear solicitudes de desarrollo y consultar las propias; coordinación puede revisar, validar o rechazar las que están pendientes. Los comandos guardan solicitud, auditoría y notificación en una sola transacción y controlan la versión vista. El alta aún usa categoría de texto libre y no sube fotos; los registros usan datos simulados, no representan el pack oficial DH-02. La política inicial de urgencias se carga desde `backend/db/seed.sql` al crear la base.
+La pantalla de solicitante permite crear solicitudes con fotos y consultar las propias; coordinación puede revisar, validar, rechazar, sugerir/vincular duplicados y crear una orden para una solicitud validada. El técnico puede consultar sus órdenes filtradas por ubicación, estado y prioridad, registrar observaciones, evidencias con fotos, materiales y bloqueos, e iniciar o resolver trabajo. Los comandos guardan estado, auditoría y notificaciones en una sola transacción, controlan la versión vista y aceptan claves de idempotencia. Los catálogos e identidades siguen siendo simulados: el pack oficial DH-02 aún no está en el repositorio. Las políticas iniciales se cargan desde `backend/db/seed.sql` al crear la base.
+
+El avance y los pendientes de la Fase 0 están en [`docs/fase-0.md`](docs/fase-0.md).
