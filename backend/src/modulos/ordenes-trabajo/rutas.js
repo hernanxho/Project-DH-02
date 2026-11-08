@@ -3,7 +3,7 @@ import { Router } from "express";
 import { conComando } from "../../compartido/idempotencia.js";
 import { exigirRol } from "../identidad-acceso/index.js";
 import { consultarAuditoria } from "../auditoria/index.js";
-import { crearOrden, listarOrdenesTecnico, listarResponsables, solicitarTransicion, transferirOrden } from "./servicio.js";
+import { corregirCategoriaOrden, crearOrden, listarBloqueosAcceso, listarOrdenesTecnico, listarResponsables, solicitarTransicion, transferirOrden } from "./servicio.js";
 
 export const router = Router();
 
@@ -19,11 +19,20 @@ router.post("/", exigirRol("coordinador", "supervisor"), async (req, res, next) 
   } catch (err) { next(err); }
 });
 // RF-06: la consulta siempre limita el resultado al subject autenticado.
-router.get("/", exigirRol("tecnico"), async (req, res, next) => {
+router.get("/", exigirRol("tecnico", "contratista"), async (req, res, next) => {
   try { res.json(await listarOrdenesTecnico(req.usuario, req.query)); } catch (err) { next(err); }
+});
+router.get("/bloqueos-acceso", exigirRol("representante"), async (req, res, next) => {
+  try { res.json(await listarBloqueosAcceso(req.usuario)); } catch (err) { next(err); }
 });
 router.get("/:id/historial", async (req, res, next) => {
   try { res.json(await consultarAuditoria("orden", req.params.id, req.usuario)); } catch (err) { next(err); }
+});
+router.put("/:id/categoria", async (req, res, next) => {
+  try {
+    const resultado = await conComando(req, (conn) => corregirCategoriaOrden(conn, req.params.id, req.body, req.usuario));
+    res.json(resultado);
+  } catch (err) { next(err); }
 });
 // RF-07: cambiar estado (transición con evidencia y versión vista)
 router.post("/:id/transiciones", async (req, res, next) => {

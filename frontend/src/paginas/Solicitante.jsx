@@ -7,6 +7,9 @@ export default function Solicitante() {
   const [formulario, setFormulario] = useState(inicial);
   const [foto, setFoto] = useState(null);
   const [solicitudes, setSolicitudes] = useState([]);
+  const [ubicaciones, setUbicaciones] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+  const [urgencias, setUrgencias] = useState([]);
   const [pendientes, setPendientes] = useState([]);
   const [motivosCierre, setMotivosCierre] = useState({});
   const [descripcionesReapertura, setDescripcionesReapertura] = useState({});
@@ -16,12 +19,16 @@ export default function Solicitante() {
 
   const cargar = useCallback(async () => {
     try {
-      const [listaSolicitudes, listaPendientes] = await Promise.all([
+      const [listaSolicitudes, listaPendientes, catalogos] = await Promise.all([
         api("/solicitudes"),
         api("/notificaciones/pendientes"),
+        api("/solicitudes/catalogos"),
       ]);
       setSolicitudes(listaSolicitudes);
       setPendientes(listaPendientes);
+      setUbicaciones(catalogos.ubicaciones);
+      setCategorias(catalogos.categorias);
+      setUrgencias(catalogos.urgencias);
       setError("");
     } catch (e) {
       setError(e.message);
@@ -117,12 +124,22 @@ export default function Solicitante() {
       <h2>Reportar un problema</h2>
       <form onSubmit={enviar} style={{ display: "grid", gap: "0.75rem", maxWidth: 560 }}>
         <label>
-          Código de ubicación
-          <input required maxLength={64} value={formulario.ubicacionCodigo} onChange={(e) => cambiar("ubicacionCodigo", e.target.value)} placeholder="Por ejemplo, A-101" />
+          Ubicación
+          <select required value={formulario.ubicacionCodigo} onChange={(e) => cambiar("ubicacionCodigo", e.target.value)}>
+            <option value="">Selecciona un espacio</option>
+            {ubicaciones.map((ubicacion) => (
+              <option key={ubicacion.codigo} value={ubicacion.codigo}>
+                {ubicacion.codigo} · {ubicacion.nombre}{ubicacion.restringida ? " · Acceso restringido" : ""}
+              </option>
+            ))}
+          </select>
         </label>
         <label>
           Categoría
-          <input required maxLength={64} value={formulario.categoria} onChange={(e) => cambiar("categoria", e.target.value)} />
+          <select required value={formulario.categoria} onChange={(e) => cambiar("categoria", e.target.value)}>
+            <option value="">Selecciona una categoría</option>
+            {categorias.map((categoria) => <option key={categoria.codigo} value={categoria.codigo}>{categoria.nombre}</option>)}
+          </select>
         </label>
         <label>
           Descripción
@@ -135,7 +152,7 @@ export default function Solicitante() {
         <label>
           Urgencia sugerida
           <select value={formulario.urgenciaSugerida} onChange={(e) => cambiar("urgenciaSugerida", e.target.value)}>
-            {["Crítica", "Alta", "Normal", "Baja"].map((nivel) => <option key={nivel}>{nivel}</option>)}
+            {urgencias.map((nivel) => <option key={nivel}>{nivel}</option>)}
           </select>
         </label>
         <button type="submit" disabled={guardando}>{guardando ? "Enviando…" : "Enviar solicitud"}</button>

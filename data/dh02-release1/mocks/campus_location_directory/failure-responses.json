@@ -1,0 +1,22 @@
+{
+  "records": [
+    {
+      "failure_id": "LOC-404",
+      "http_status": 404,
+      "error": "LOCATION_NOT_FOUND",
+      "message": "No synthetic campus location matches the supplied identifier."
+    },
+    {
+      "failure_id": "LOC-410",
+      "http_status": 410,
+      "error": "LOCATION_INACTIVE",
+      "message": "The location exists but is not active."
+    },
+    {
+      "failure_id": "LOC-503",
+      "http_status": 503,
+      "error": "SERVICE_UNAVAILABLE",
+      "message": "The simulated Campus Location Directory is temporarily unavailable."
+    }
+  ]
+}

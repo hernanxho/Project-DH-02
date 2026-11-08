@@ -10,6 +10,7 @@ import { router as ejecucionRouter } from "./modulos/ejecucion-evidencia/index.j
 import { router as notificacionesRouter } from "./modulos/notificaciones-plazos/index.js";
 import { router as reportesRouter } from "./modulos/reportes-tablero/index.js";
 import { router as adjuntosRouter } from "./modulos/archivos-adjuntos/index.js";
+import { router as politicasRouter } from "./modulos/reglas-politicas/index.js";
 
 export function crearApp() {
   const app = express();
@@ -36,6 +37,7 @@ export function crearApp() {
   app.use("/api/notificaciones", routerCierres);
   app.use("/api/notificaciones", notificacionesRouter);
   app.use("/api/reportes", reportesRouter);
+  app.use("/api/politicas", politicasRouter);
 
   // Manejador global de errores
   // eslint-disable-next-line no-unused-vars

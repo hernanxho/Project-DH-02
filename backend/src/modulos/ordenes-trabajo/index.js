@@ -3,4 +3,4 @@
 export { router } from "./rutas.js";
 export { routerCierres } from "./cierres-rutas.js";
 export { ESTADOS, TRANSICIONES, transicionPermitida } from "./transiciones.js";
-export { crearOrden, listarOrdenesTecnico, listarResponsables, solicitarTransicion, listarPendientesCierre, confirmarCierre, rechazarCierre, reabrirOrden, cerrarAutomaticamente, transferirOrden } from "./servicio.js";
+export { corregirCategoriaOrden, crearOrden, listarBloqueosAcceso, listarOrdenesTecnico, listarResponsables, solicitarTransicion, listarPendientesCierre, confirmarCierre, rechazarCierre, reabrirOrden, cerrarAutomaticamente, transferirOrden } from "./servicio.js";

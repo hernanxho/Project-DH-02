@@ -6,6 +6,7 @@ import { buscarPersona } from "../../adaptadores/identidad.js";
 import { registrarAuditoria } from "../auditoria/index.js";
 import { cancelarPlazos, encolarNotificacion, programarPlazos } from "../notificaciones-plazos/index.js";
 import { obtenerReglaConConexion } from "../reglas-politicas/index.js";
+import { puedeAccederAOrden, puedeAdministrarSolicitud } from "../identidad-acceso/index.js";
 import { transicionPermitida } from "./transiciones.js";
 
 const entradaCrearOrden = z.object({
@@ -36,6 +37,7 @@ export async function crearOrden(conn, datos, actor) {
   );
   const solicitud = solicitudes[0];
   if (!solicitud) throw noEncontrado("Solicitud no encontrada");
+  if (!puedeAdministrarSolicitud(actor, solicitud, ["coordinador", "supervisor"])) throw prohibido("Tu alcance no incluye esa solicitud");
   if (solicitud.version !== entrada.versionVista) throw conflictoVersion();
   if (solicitud.estado !== "VALIDADA") {
     throw new ErrorApp(422, "SOLICITUD_NO_VALIDADA", "Solo se pueden crear órdenes desde solicitudes validadas");
@@ -51,9 +53,9 @@ export async function crearOrden(conn, datos, actor) {
   if (existentes[0]) throw new ErrorApp(409, "ORDEN_EXISTENTE", "Esta solicitud ya tiene una orden de trabajo");
 
   const [perfiles] = await conn.query(
-    `SELECT p.unidad, p.disponible, p.habilitado_restringidas
+    `SELECT p.unidad, p.disponible, p.habilitado_restringidas, r.rol
        FROM perfil_tecnico p
-       JOIN asignacion_rol r ON r.subject = p.subject AND r.rol = 'tecnico'
+       JOIN asignacion_rol r ON r.subject = p.subject AND r.rol IN ('tecnico', 'contratista')
       WHERE p.subject = ?
       ORDER BY CASE WHEN r.rol = 'tecnico' THEN 0 ELSE 1 END
       LIMIT 1`,
@@ -82,10 +84,10 @@ export async function crearOrden(conn, datos, actor) {
       (id, solicitud_id, unidad_responsable, ubicacion_codigo,
        categoria_original, categoria_actual, prioridad, estado,
        responsable_subject, tipo_responsable, version)
-     VALUES (?, ?, ?, ?, ?, ?, ?, 'ASIGNADA', ?, 'tecnico', 1)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, 'ASIGNADA', ?, ?, 1)`,
     [id, solicitud.id, perfil.unidad, solicitud.ubicacion_codigo,
       solicitud.categoria_reportada, solicitud.categoria_reportada,
-      solicitud.urgencia_validada, entrada.responsableSubject],
+      solicitud.urgencia_validada, entrada.responsableSubject, perfil.rol],
   );
   await conn.query(
     `INSERT INTO asignacion
@@ -146,6 +148,78 @@ export async function listarResponsables() {
   return responsables.filter(Boolean);
 }
 
+export async function listarBloqueosAcceso(usuario) {
+  if (!usuario.roles.some((r) => r.rol === "representante")) throw prohibido("Solo un representante puede consultar accesos pendientes");
+  const [filas] = await pool.query(
+    `SELECT o.id AS ordenId, o.version, o.ubicacion_codigo AS ubicacionCodigo,
+            o.categoria_actual AS categoria, o.prioridad, s.descripcion,
+            s.afectado_subject AS afectadoSubject, s.ubicacion_snapshot AS ubicacionSnapshot,
+            b.id AS bloqueoId, b.parte_responsable AS parteResponsable,
+            b.siguiente_accion AS siguienteAccion, b.seguimiento_en AS seguimientoEn
+       FROM orden_trabajo o
+       JOIN solicitud s ON s.id = o.solicitud_id
+       JOIN bloqueo b ON b.orden_id = o.id AND b.resuelto_en IS NULL
+      WHERE o.estado = 'BLOQUEADA_ACCESO'
+      ORDER BY b.seguimiento_en IS NULL, b.seguimiento_en`,
+  );
+  return filas.filter((fila) => puedeAccederAOrden(usuario, fila))
+    .map(({ afectadoSubject, ubicacionSnapshot, ...fila }) => fila);
+}
+
+const entradaCorregirCategoria = z.object({
+  categoria: z.string().trim().min(1).max(64),
+  motivo: z.string().trim().min(1).max(2000),
+  versionVista: z.number().int().positive(),
+});
+
+export async function corregirCategoriaOrden(conn, ordenId, datos, actor) {
+  const entrada = parsear(entradaCorregirCategoria, datos);
+  const [filas] = await conn.query(
+    `SELECT o.estado, o.version, o.responsable_subject AS responsableSubject,
+            o.categoria_original AS categoriaOriginal, o.categoria_actual AS categoriaActual,
+            o.ubicacion_codigo AS ubicacionCodigo, s.afectado_subject AS afectadoSubject,
+            s.registrada_por AS registradaPor, s.ubicacion_snapshot AS ubicacionSnapshot
+       FROM orden_trabajo o JOIN solicitud s ON s.id = o.solicitud_id
+      WHERE o.id = ? FOR UPDATE`,
+    [ordenId],
+  );
+  const orden = filas[0];
+  if (!orden) throw noEncontrado("Orden no encontrada");
+  const esResponsable = actor.subject === orden.responsableSubject && actor.roles.some((r) => ["tecnico", "contratista"].includes(r.rol));
+  const esGestor = puedeAdministrarSolicitud(actor, orden, ["coordinador", "supervisor"]);
+  if (!esResponsable && !esGestor) throw prohibido("Solo el responsable o coordinación puede corregir la categoría en su alcance");
+  if (orden.version !== entrada.versionVista) throw conflictoVersion();
+  if (["RESUELTA", "CERRADA"].includes(orden.estado)) throw new ErrorApp(422, "ORDEN_NO_EDITABLE", "No se puede corregir la categoría después de resolver el trabajo");
+  const regla = await obtenerReglaConConexion(conn, "categorias_mantenimiento");
+  const categorias = Array.isArray(regla?.valor) ? regla.valor : [];
+  if (!categorias.some((categoria) => categoria.codigo === entrada.categoria)) {
+    throw new ErrorApp(400, "CATEGORIA_INVALIDA", "La categoría no está en el catálogo vigente");
+  }
+  if (entrada.categoria === orden.categoriaActual) throw new ErrorApp(422, "CATEGORIA_SIN_CAMBIOS", "Selecciona una categoría distinta a la actual");
+
+  const [actualizacion] = await conn.query(
+    `UPDATE orden_trabajo SET categoria_actual = ?, version = version + 1
+      WHERE id = ? AND version = ?`,
+    [entrada.categoria, ordenId, entrada.versionVista],
+  );
+  if (actualizacion.affectedRows !== 1) throw conflictoVersion();
+  await registrarAuditoria(conn, {
+    entidad: "orden", entidadId: ordenId, accion: "CATEGORIA_CORREGIDA",
+    actor: actor.subject, estadoDesde: orden.estado, estadoHasta: orden.estado,
+    detalle: {
+      categoriaOriginal: orden.categoriaOriginal, categoriaAnterior: orden.categoriaActual,
+      categoriaNueva: entrada.categoria, motivo: entrada.motivo, versionPolitica: regla.version,
+    },
+  });
+  for (const destinatario of new Set([orden.afectadoSubject, orden.registradaPor])) {
+    if (destinatario) await encolarNotificacion(conn, {
+      destinatario, plantilla: "CATEGORIA_ORDEN_CORREGIDA",
+      carga: { ordenId, categoria: entrada.categoria },
+    });
+  }
+  return { ordenId, categoriaOriginal: orden.categoriaOriginal, categoriaActual: entrada.categoria, version: entrada.versionVista + 1 };
+}
+
 const entradaTransferencia = z.object({
   responsableSubject: z.string().trim().min(1).max(64),
   versionVista: z.number().int().positive(),
@@ -156,24 +230,31 @@ const entradaTransferencia = z.object({
 export async function transferirOrden(conn, ordenId, datos, actor, tipoCambio) {
   const entrada = parsear(entradaTransferencia, datos);
   const [filas] = await conn.query(
-    `SELECT o.estado, o.version, o.responsable_subject, o.ubicacion_snapshot,
-            o.unidad_responsable
-       FROM orden_trabajo o WHERE o.id = ? FOR UPDATE`,
+    `SELECT o.estado, o.version, o.responsable_subject, o.unidad_responsable,
+            s.ubicacion_snapshot AS ubicacionSnapshot, s.afectado_subject AS afectadoSubject
+       FROM orden_trabajo o JOIN solicitud s ON s.id = o.solicitud_id
+      WHERE o.id = ? FOR UPDATE`,
     [ordenId],
   );
   const orden = filas[0];
   if (!orden) throw noEncontrado("Orden no encontrada");
+  if (tipoCambio === "REASIGNACION" && !puedeAdministrarSolicitud(actor, orden, ["supervisor"])) throw prohibido("Tu alcance no incluye esa orden");
   if (orden.version !== entrada.versionVista) throw conflictoVersion();
   if (entrada.responsableSubject === orden.responsable_subject) {
     throw new ErrorApp(422, "RESPONSABLE_IGUAL", "El responsable nuevo debe ser distinto al actual");
   }
   if (tipoCambio === "TRANSFERENCIA") {
-    if (actor.subject !== orden.responsable_subject) throw prohibido("Solo el responsable actual puede transferir la orden");
+    if (!actor.roles.some((rol) => ["tecnico", "contratista"].includes(rol.rol)) || actor.subject !== orden.responsable_subject) {
+      throw prohibido("Solo el responsable técnico actual puede transferir la orden");
+    }
     if (!["ASIGNADA", "EN_PROGRESO", "BLOQUEADA_MATERIALES", "BLOQUEADA_ACCESO"].includes(orden.estado)) {
       throw new ErrorApp(422, "ESTADO_NO_TRANSFERIBLE", "La orden no se puede transferir en su estado actual");
     }
-  } else if (!["ASIGNADA", "EN_PROGRESO", "BLOQUEADA_MATERIALES", "BLOQUEADA_ACCESO"].includes(orden.estado)) {
-    throw new ErrorApp(422, "ESTADO_NO_REASIGNABLE", "La orden no se puede reasignar en su estado actual");
+  } else {
+    if (!actor.roles.some((rol) => rol.rol === "supervisor")) throw prohibido("Solo supervisión puede reasignar una orden");
+    if (!["ASIGNADA", "EN_PROGRESO", "BLOQUEADA_MATERIALES", "BLOQUEADA_ACCESO"].includes(orden.estado)) {
+      throw new ErrorApp(422, "ESTADO_NO_REASIGNABLE", "La orden no se puede reasignar en su estado actual");
+    }
   }
 
   const [perfiles] = await conn.query(
@@ -188,7 +269,7 @@ export async function transferirOrden(conn, ordenId, datos, actor, tipoCambio) {
   const perfil = perfiles[0];
   if (!perfil) throw new ErrorApp(422, "RESPONSABLE_INVALIDO", "El responsable no tiene perfil local de técnico o contratista");
   if (!perfil.disponible) throw new ErrorApp(422, "RESPONSABLE_NO_DISPONIBLE", "El responsable seleccionado no está disponible");
-  let snapshot = orden.ubicacion_snapshot;
+  let snapshot = orden.ubicacionSnapshot;
   if (typeof snapshot === "string") {
     try { snapshot = JSON.parse(snapshot); } catch { snapshot = null; }
   }
@@ -240,8 +321,8 @@ export async function transferirOrden(conn, ordenId, datos, actor, tipoCambio) {
 }
 
 export async function listarOrdenesTecnico(usuario, filtros = {}) {
-  if (!usuario.roles.some((rol) => rol.rol === "tecnico")) {
-    throw prohibido("Solo el técnico asignado puede consultar su lista de órdenes");
+  if (!usuario.roles.some((rol) => ["tecnico", "contratista"].includes(rol.rol))) {
+    throw prohibido("Solo el personal técnico puede consultar su lista de órdenes");
   }
   const condiciones = ["o.responsable_subject = ?"];
   const parametros = [usuario.subject];
@@ -286,7 +367,8 @@ export async function solicitarTransicion(conn, datos, actor) {
   }
   const [filas] = await conn.query(
     `SELECT o.id, o.estado, o.version, o.responsable_subject, o.resuelta_en,
-            s.afectado_subject
+            o.ubicacion_codigo AS ubicacionCodigo, s.afectado_subject AS afectadoSubject,
+            s.registrada_por AS registradaPor, s.ubicacion_snapshot AS ubicacionSnapshot
        FROM orden_trabajo o
        JOIN solicitud s ON s.id = o.solicitud_id
       WHERE o.id = ?
@@ -298,9 +380,14 @@ export async function solicitarTransicion(conn, datos, actor) {
   if (orden.version !== entrada.versionVista) throw conflictoVersion();
 
   let tipoActor;
-  if (orden.responsable_subject === actor.subject) tipoActor = "responsable";
-  else if (orden.afectado_subject === actor.subject) tipoActor = "afectado";
-  else throw prohibido("No tienes relación con esta orden");
+  if (orden.responsable_subject === actor.subject && actor.roles.some((r) => ["tecnico", "contratista"].includes(r.rol))) {
+    tipoActor = "responsable";
+  } else if (orden.afectadoSubject === actor.subject && actor.roles.some((r) => ["solicitante", "coordinador", "representante"].includes(r.rol))) {
+    tipoActor = "afectado";
+  } else if (orden.estado === "BLOQUEADA_ACCESO" && actor.roles.some((r) => r.rol === "representante") &&
+      puedeAccederAOrden(actor, orden)) {
+    tipoActor = "representante";
+  } else throw prohibido("No tienes relación autorizada con esta orden");
 
   if (!transicionPermitida(orden.estado, entrada.hacia, tipoActor)) {
     throw transicionInvalida(orden.estado, entrada.hacia);
@@ -385,7 +472,7 @@ export async function solicitarTransicion(conn, datos, actor) {
       `INSERT INTO confirmacion_cierre
         (id, orden_id, ciclo, solicitada_a_subject, solicitada_en, vence_en)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [randomUUID(), datos.ordenId, Number(ciclos[0].ultimoCiclo) + 1, orden.afectado_subject, resueltaEn, venceEn],
+      [randomUUID(), datos.ordenId, Number(ciclos[0].ultimoCiclo) + 1, orden.afectadoSubject, resueltaEn, venceEn],
     );
     versionesPlazo = await programarPlazos(conn, datos.ordenId);
   } else if (orden.estado === "RESUELTA" && entrada.hacia === "EN_PROGRESO") {
@@ -404,10 +491,17 @@ export async function solicitarTransicion(conn, datos, actor) {
     },
   });
   await encolarNotificacion(conn, {
-    destinatario: orden.afectado_subject,
+    destinatario: orden.afectadoSubject,
     plantilla: "ORDEN_ESTADO_CAMBIADO",
     carga: { ordenId: datos.ordenId, estado: entrada.hacia },
   });
+
+  if (orden.registradaPor && orden.registradaPor !== orden.afectadoSubject) {
+    await encolarNotificacion(conn, {
+      destinatario: orden.registradaPor, plantilla: "ORDEN_ESTADO_CAMBIADO",
+      carga: { ordenId: datos.ordenId, estado: entrada.hacia },
+    });
+  }
 
   if (entrada.hacia === "BLOQUEADA_MATERIALES" || entrada.hacia === "BLOQUEADA_ACCESO") {
     const [supervisores] = await conn.query("SELECT subject FROM asignacion_rol WHERE rol = 'supervisor'");
@@ -455,7 +549,7 @@ const entradaRechazoCierre = entradaRespuestaCierre.extend({ motivo: z.string().
 async function cargarCierrePendiente(conn, ordenId, versionVista, usuario) {
   const [filas] = await conn.query(
     `SELECT o.estado, o.version, o.responsable_subject, o.ubicacion_codigo,
-            s.afectado_subject, s.ubicacion_snapshot
+            s.afectado_subject, s.registrada_por, s.ubicacion_snapshot
        FROM orden_trabajo o JOIN solicitud s ON s.id = o.solicitud_id
       WHERE o.id = ? FOR UPDATE`,
     [ordenId],
@@ -507,6 +601,12 @@ export async function confirmarCierre(conn, ordenId, datos, usuario) {
     destinatario: orden.responsable_subject, plantilla: "CIERRE_CONFIRMADO",
     carga: { ordenId, estado: "CERRADA", tipoCierre: "CONFIRMADO" },
   });
+  for (const destinatario of new Set([orden.afectado_subject, orden.registrada_por])) {
+    if (destinatario && destinatario !== orden.responsable_subject) await encolarNotificacion(conn, {
+      destinatario, plantilla: "CIERRE_CONFIRMADO",
+      carga: { ordenId, estado: "CERRADA", tipoCierre: "CONFIRMADO" },
+    });
+  }
   return { ordenId, estado: "CERRADA", tipoCierre: "CONFIRMADO", version: entrada.versionVista + 1 };
 }
 
@@ -538,6 +638,12 @@ export async function rechazarCierre(conn, ordenId, datos, usuario) {
     destinatario: orden.responsable_subject, plantilla: "CIERRE_RECHAZADO",
     carga: { ordenId, estado: "EN_PROGRESO", motivo: entrada.motivo },
   });
+  for (const destinatario of new Set([orden.afectado_subject, orden.registrada_por])) {
+    if (destinatario && destinatario !== orden.responsable_subject) await encolarNotificacion(conn, {
+      destinatario, plantilla: "CIERRE_RECHAZADO",
+      carga: { ordenId, estado: "EN_PROGRESO", motivo: entrada.motivo },
+    });
+  }
   return { ordenId, estado: "EN_PROGRESO", version: entrada.versionVista + 1 };
 }
 
@@ -604,7 +710,8 @@ export async function reabrirOrden(conn, ordenId, datos, usuario) {
 
 export async function cerrarAutomaticamente(conn, ordenId, plazoId = null) {
   const [filas] = await conn.query(
-    `SELECT o.estado, o.version, s.afectado_subject
+    `SELECT o.estado, o.version, s.afectado_subject AS afectadoSubject,
+            s.registrada_por AS registradaPor
        FROM orden_trabajo o JOIN solicitud s ON s.id = o.solicitud_id
       WHERE o.id = ? FOR UPDATE`,
     [ordenId],
@@ -615,13 +722,53 @@ export async function cerrarAutomaticamente(conn, ordenId, plazoId = null) {
     throw transicionInvalida("RESUELTA", "CERRADA");
   }
   const [confirmaciones] = await conn.query(
-    `SELECT id, ciclo FROM confirmacion_cierre
+    `SELECT id, ciclo, vence_en AS venceEn FROM confirmacion_cierre
       WHERE orden_id = ? AND respuesta IS NULL AND vence_en <= UTC_TIMESTAMP(3)
       ORDER BY ciclo DESC LIMIT 1 FOR UPDATE`,
     [ordenId],
   );
   const confirmacion = confirmaciones[0];
   if (!confirmacion) return { procesada: false };
+
+  const retrasoMs = Date.now() - new Date(confirmacion.venceEn).getTime();
+  if (retrasoMs > 60 * 60 * 1000) {
+    const [recordatorios] = await conn.query(
+      `SELECT id FROM plazo
+        WHERE orden_id = ? AND tipo = 'RECORDATORIO' AND estado = 'PENDIENTE'
+          AND vence_en <= UTC_TIMESTAMP(3)
+        ORDER BY vence_en FOR UPDATE`,
+      [ordenId],
+    );
+    for (const recordatorio of recordatorios) {
+      await encolarNotificacion(conn, {
+        destinatario: orden.afectadoSubject,
+        plantilla: "RECORDATORIO_CONFIRMACION",
+        carga: { ordenId, ciclo: confirmacion.ciclo, recuperacion: true },
+      });
+      await conn.query(
+        "UPDATE plazo SET estado = 'PROCESADO', procesado_en = UTC_TIMESTAMP(3) WHERE id = ? AND estado = 'PENDIENTE'",
+        [recordatorio.id],
+      );
+    }
+    const nuevaVenceEn = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await conn.query("UPDATE confirmacion_cierre SET vence_en = ? WHERE id = ? AND respuesta IS NULL", [nuevaVenceEn, confirmacion.id]);
+    if (plazoId) {
+      await conn.query("UPDATE plazo SET vence_en = ?, estado = 'PENDIENTE', procesado_en = NULL WHERE id = ?", [nuevaVenceEn, plazoId]);
+    }
+    await registrarAuditoria(conn, {
+      entidad: "orden", entidadId: ordenId, accion: "CIERRE_REPROGRAMADO_POR_RECUPERACION",
+      actor: "SISTEMA", estadoDesde: "RESUELTA", estadoHasta: "RESUELTA",
+      detalle: { ciclo: confirmacion.ciclo, minutosDeRetraso: Math.floor(retrasoMs / 60000), nuevaVenceEn },
+    });
+    for (const destinatario of new Set([orden.afectadoSubject, orden.registradaPor])) {
+      if (!destinatario) continue;
+      await encolarNotificacion(conn, {
+        destinatario, plantilla: "CIERRE_REPROGRAMADO",
+        carga: { ordenId, ciclo: confirmacion.ciclo, venceEn: nuevaVenceEn },
+      });
+    }
+    return { procesada: true, reprogramada: true, ordenId, venceEn: nuevaVenceEn };
+  }
   const [actualizacion] = await conn.query(
     `UPDATE orden_trabajo SET estado = 'CERRADA', tipo_cierre = 'AUTOMATICO',
             cerrada_en = UTC_TIMESTAMP(3), version = version + 1
@@ -648,8 +795,14 @@ export async function cerrarAutomaticamente(conn, ordenId, plazoId = null) {
     detalle: { tipoCierre: "AUTOMATICO", ciclo: confirmacion.ciclo },
   });
   await encolarNotificacion(conn, {
-    destinatario: orden.afectado_subject, plantilla: "CIERRE_AUTOMATICO",
+    destinatario: orden.afectadoSubject, plantilla: "CIERRE_AUTOMATICO",
     carga: { ordenId, estado: "CERRADA", tipoCierre: "AUTOMATICO", puedeReabrir: true },
   });
+  if (orden.registradaPor && orden.registradaPor !== orden.afectadoSubject) {
+    await encolarNotificacion(conn, {
+      destinatario: orden.registradaPor, plantilla: "CIERRE_AUTOMATICO",
+      carga: { ordenId, estado: "CERRADA", tipoCierre: "AUTOMATICO", puedeReabrir: true },
+    });
+  }
   return { procesada: true, ordenId, tipoCierre: "AUTOMATICO" };
 }

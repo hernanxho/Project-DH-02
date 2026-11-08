@@ -1,5 +1,6 @@
 import { pool } from "../../compartido/db.js";
 import { noEncontrado, prohibido } from "../../compartido/errores.js";
+import { puedeAccederAOrden, puedeAccederASolicitud } from "../identidad-acceso/index.js";
 
 // Auditoría: historial inmutable (RF-11, ADR-004). Solo se anexa; nunca UPDATE ni DELETE.
 // Se llama DENTRO de la transacción del comando, con su misma conexión: si el comando falla, no queda rastro falso.
@@ -12,34 +13,31 @@ export async function registrarAuditoria(conn, { entidad, entidadId, accion, act
 }
 
 export async function consultarAuditoria(entidad, entidadId, usuario) {
-  const roles = usuario.roles.map((r) => r.rol);
   let consulta;
   let parametros;
   if (entidad === "solicitud") {
     const [recursos] = await pool.query(
-      "SELECT registrada_por, afectado_subject FROM solicitud WHERE id = ?",
+      `SELECT registrada_por AS registradaPor, afectado_subject AS afectadoSubject,
+              ubicacion_snapshot AS ubicacionSnapshot
+         FROM solicitud WHERE id = ?`,
       [entidadId],
     );
     const solicitud = recursos[0];
     if (!solicitud) throw noEncontrado("Solicitud no encontrada");
-    const puedeVer = roles.includes("coordinador") || roles.includes("supervisor") ||
-      solicitud.registrada_por === usuario.subject || solicitud.afectado_subject === usuario.subject;
-    if (!puedeVer) throw prohibido("No tienes permiso para consultar el historial de esta solicitud");
+    if (!puedeAccederASolicitud(usuario, solicitud)) throw prohibido("No tienes permiso para consultar el historial de esta solicitud");
     consulta = "SELECT id, accion, actor_subject AS actor, estado_desde AS estadoDesde, estado_hasta AS estadoHasta, detalle, ocurrida_en AS ocurridaEn FROM auditoria WHERE entidad = 'solicitud' AND entidad_id = ? ORDER BY ocurrida_en, id";
     parametros = [entidadId];
   } else if (entidad === "orden") {
     const [recursos] = await pool.query(
-      `SELECT o.responsable_subject, s.registrada_por, s.afectado_subject
+      `SELECT o.responsable_subject AS responsableSubject, s.afectado_subject AS afectadoSubject,
+              s.ubicacion_snapshot AS ubicacionSnapshot
          FROM orden_trabajo o JOIN solicitud s ON s.id = o.solicitud_id
         WHERE o.id = ?`,
       [entidadId],
     );
     const orden = recursos[0];
     if (!orden) throw noEncontrado("Orden no encontrada");
-    const puedeVer = roles.includes("coordinador") || roles.includes("supervisor") ||
-      orden.responsable_subject === usuario.subject ||
-      orden.registrada_por === usuario.subject || orden.afectado_subject === usuario.subject;
-    if (!puedeVer) throw prohibido("No tienes permiso para consultar el historial de esta orden");
+    if (!puedeAccederAOrden(usuario, orden)) throw prohibido("No tienes permiso para consultar el historial de esta orden");
     consulta = "SELECT id, accion, actor_subject AS actor, estado_desde AS estadoDesde, estado_hasta AS estadoHasta, detalle, ocurrida_en AS ocurridaEn FROM auditoria WHERE entidad = 'orden' AND entidad_id = ? ORDER BY ocurrida_en, id";
     parametros = [entidadId];
   } else {

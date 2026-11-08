@@ -1,0 +1,26 @@
+{
+  "scenario_id": "DH02-SC-01",
+  "title": "Standard lighting repair awaiting confirmation",
+  "actors": [
+    "faculty_requester",
+    "facilities_coordinator",
+    "technician"
+  ],
+  "initial_records": [
+    "MNT-2005",
+    "WO-3004",
+    "ASN-5005",
+    "UPD-6006",
+    "CNF-10001"
+  ],
+  "known_conditions": [
+    "The technician replaced and tested four lamps.",
+    "The work order is technically complete.",
+    "Requester confirmation remains pending."
+  ],
+  "questions": [
+    "Which state should the work order enter after technical completion?",
+    "When may the work order be closed?",
+    "What evidence should remain visible to the requester?"
+  ]
+}

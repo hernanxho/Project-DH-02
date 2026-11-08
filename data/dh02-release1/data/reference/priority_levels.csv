@@ -1,0 +1,5 @@
+priority_code,display_name,target_review_minutes,target_assignment_minutes,active
+CRITICAL,Critical,30,60,true
+HIGH,High,240,240,true
+NORMAL,Normal,2880,4320,true
+LOW,Low,5760,10080,true

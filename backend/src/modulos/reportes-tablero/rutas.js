@@ -5,6 +5,6 @@ import { obtenerTablero } from "./servicio.js";
 
 export const router = Router();
 
-router.get("/tablero", exigirRol("supervisor", "coordinador"), async (_req, res, next) => {
-  try { res.json(await obtenerTablero()); } catch (err) { next(err); }
+router.get("/tablero", exigirRol("supervisor", "coordinador"), async (req, res, next) => {
+  try { res.json(await obtenerTablero(req.usuario)); } catch (err) { next(err); }
 });

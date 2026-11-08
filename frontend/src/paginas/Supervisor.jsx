@@ -3,6 +3,8 @@ import { api } from "../api/cliente.js";
 
 export default function Supervisor() {
   const [tablero, setTablero] = useState(null);
+  const [reglas, setReglas] = useState([]);
+  const [edicionesReglas, setEdicionesReglas] = useState({});
   const [responsables, setResponsables] = useState([]);
   const [reasignaciones, setReasignaciones] = useState({});
   const [error, setError] = useState("");
@@ -11,9 +13,15 @@ export default function Supervisor() {
 
   const cargar = useCallback(async () => {
     try {
-      const [datos, tecnicos] = await Promise.all([api("/reportes/tablero"), api("/ordenes/responsables")]);
+      const [datos, tecnicos, reglasVigentes] = await Promise.all([
+        api("/reportes/tablero"),
+        api("/ordenes/responsables"),
+        api("/politicas"),
+      ]);
       setTablero(datos);
       setResponsables(tecnicos);
+      setReglas(reglasVigentes);
+      setEdicionesReglas(Object.fromEntries(reglasVigentes.map((r) => [r.clave, JSON.stringify(r.valor, null, 2)])));
       setError("");
     } catch (e) {
       setError(e.message);
@@ -58,6 +66,29 @@ export default function Supervisor() {
 
   function cambiar(ordenId, campo, valor) {
     setReasignaciones((anterior) => ({ ...anterior, [ordenId]: { ...anterior[ordenId], [campo]: valor } }));
+  }
+
+  async function guardarRegla(regla) {
+    let valor;
+    try { valor = JSON.parse(edicionesReglas[regla.clave]); } catch {
+      setError(`El valor de ${regla.clave} no contiene JSON válido.`);
+      return;
+    }
+    setOcupada(`regla:${regla.clave}`);
+    setError("");
+    try {
+      await api(`/politicas/${encodeURIComponent(regla.clave)}`, {
+        metodo: "PUT",
+        cuerpo: { versionVista: regla.version, valor },
+      });
+      setMensaje(`Se guardó una nueva versión de ${regla.clave}.`);
+      await cargar();
+    } catch (e) {
+      setError(e.message);
+      await cargar();
+    } finally {
+      setOcupada("");
+    }
   }
 
   return (
@@ -110,6 +141,20 @@ export default function Supervisor() {
           )}
         </>
       )}
+      <h2>Reglas vigentes</h2>
+      {reglas.map((regla) => (
+        <fieldset key={regla.clave}>
+          <legend>{regla.clave} · versión {regla.version}</legend>
+          <textarea
+            rows={Math.min(10, Math.max(3, (edicionesReglas[regla.clave]?.split("\n").length ?? 3)))}
+            value={edicionesReglas[regla.clave] ?? ""}
+            onChange={(e) => setEdicionesReglas((previo) => ({ ...previo, [regla.clave]: e.target.value }))}
+          />
+          <button type="button" disabled={ocupada === `regla:${regla.clave}`} onClick={() => guardarRegla(regla)}>
+            {ocupada === `regla:${regla.clave}` ? "Guardando…" : "Guardar nueva versión"}
+          </button>
+        </fieldset>
+      ))}
     </section>
   );
 }

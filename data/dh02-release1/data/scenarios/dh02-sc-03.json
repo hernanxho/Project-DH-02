@@ -1,0 +1,24 @@
+{
+  "scenario_id": "DH02-SC-03",
+  "title": "Safety report with priority and lifecycle mixed together",
+  "actors": [
+    "campus_security",
+    "maintenance_supervisor",
+    "electrical_technician"
+  ],
+  "initial_records": [
+    "MNT-2003",
+    "WO-3002",
+    "UPD-6003"
+  ],
+  "known_conditions": [
+    "The requester used the word Emergency.",
+    "The source request stores URGENT as a request status.",
+    "The area has already been isolated."
+  ],
+  "questions": [
+    "How should safety risk, priority, workflow, and escalation be represented?",
+    "Which action occurs outside the normal maintenance workflow?",
+    "Which events require audit evidence?"
+  ]
+}

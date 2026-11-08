@@ -23,11 +23,13 @@ Los responsables de módulos están registrados en el README; el equipo aún deb
 
 ## 3. Cargar datos reales del pack DH-02
 
-- [ ] Obtener el pack oficial del curso, incluyendo identidades, técnicos, edificios, ubicaciones, solicitudes y órdenes.
-- [ ] Mapear los datos a adaptadores y semillas sin inventar catálogos ni relaciones.
+- [x] Obtener el release 1 del pack y preservar sus archivos fuente en [`data/dh02-release1/`](../data/dh02-release1/).
+- [x] Conectar los catálogos de ubicaciones y categorías, y enlazar las identidades y perfiles de técnicos disponibles.
+- [ ] Hernán y Mike confirman los roles provisionales documentados en [`pack-dh02.md`](pack-dh02.md).
+- [ ] Acordar cómo normalizar e importar registros de solicitudes, órdenes, asignaciones, bloqueos y cierres.
 - [ ] Revisar los casos de referencia del pack y decidir cómo representar sus excepciones.
 
-El ZIP que está disponible en Descargas contiene únicamente `Evalucion2.html` y `eva2final.md`; no contiene los CSV/JSON del pack. El repositorio todavía usa identidades, ubicaciones y perfiles ficticios, así que esta parte no se puede cerrar con lo disponible.
+El pack es de descubrimiento y señala ambigüedades intencionales. Los datos fuente se conservaron, pero aún no se cargaron como órdenes activas para evitar traducir estados, alias o relaciones sin una decisión acordada.
 
 ## Decisiones y confirmaciones externas
 

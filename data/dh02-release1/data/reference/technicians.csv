@@ -1,0 +1,8 @@
+technician_id,display_name,institutional_email,home_unit,availability_status,active
+TECH-001,Jorge Salcedo,jorge.salcedo@example.edu,FAC-ELEC,AVAILABLE,true
+TECH-002,Mariana Ibarra,mariana.ibarra@example.edu,FAC-PLUMB,AVAILABLE,true
+TECH-003,Carlos Vega,carlos.vega@example.edu,FAC-HVAC,AVAILABLE,true
+TECH-004,Luisa Andrade,luisa.andrade@example.edu,FAC-GENERAL,AVAILABLE,true
+TECH-005,Pedro Navarro,pedro.navarro@example.edu,FAC-GENERAL,TEMPORARILY_UNAVAILABLE,true
+TECH-006,Rosa Molina,rosa.molina@example.edu,FAC-GROUNDS,AVAILABLE,true
+TECH-007,Alberto Mendez,alberto.mendez@example.edu,FAC-HVAC,ON_LEAVE,false

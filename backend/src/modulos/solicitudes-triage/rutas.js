@@ -3,7 +3,7 @@ import { Router } from "express";
 import { conComando } from "../../compartido/idempotencia.js";
 import { exigirRol } from "../identidad-acceso/index.js";
 import { consultarAuditoria } from "../auditoria/index.js";
-import { buscarDuplicados, crearSolicitud, listarSolicitudes, obtenerSolicitud, rechazarSolicitud, validarSolicitud, vincularDuplicado } from "./servicio.js";
+import { buscarDuplicados, crearSolicitud, listarSolicitudes, obtenerCatalogosSolicitud, obtenerSolicitud, rechazarSolicitud, validarSolicitud, verificarUbicacionSolicitud, vincularDuplicado } from "./servicio.js";
 
 export const router = Router();
 
@@ -12,6 +12,9 @@ router.post("/", exigirRol("solicitante", "coordinador"), async (req, res, next)
     const resultado = await conComando(req, (conn) => crearSolicitud(conn, req.body, req.usuario));
     res.status(201).json(resultado);
   } catch (err) { next(err); }
+});
+router.get("/catalogos", async (_req, res, next) => {
+  try { res.json(await obtenerCatalogosSolicitud()); } catch (err) { next(err); }
 });
 router.get("/", async (req, res, next) => {
   try { res.json(await listarSolicitudes(req.usuario)); } catch (err) { next(err); }
@@ -28,6 +31,12 @@ router.post("/:id/validar", exigirRol("coordinador"), async (req, res, next) => 
     res.json(resultado);
   } catch (err) { next(err); }
 });
+router.post("/:id/verificar-ubicacion", exigirRol("coordinador"), async (req, res, next) => {
+  try {
+    const resultado = await conComando(req, (conn) => verificarUbicacionSolicitud(conn, req.params.id, req.body, req.usuario));
+    res.json(resultado);
+  } catch (err) { next(err); }
+});
 router.post("/:id/rechazar", exigirRol("coordinador"), async (req, res, next) => {
   try {
     const resultado = await conComando(req, (conn) => rechazarSolicitud(conn, req.params.id, req.body, req.usuario));
@@ -35,7 +44,7 @@ router.post("/:id/rechazar", exigirRol("coordinador"), async (req, res, next) =>
   } catch (err) { next(err); }
 });
 router.get("/:id/duplicados-sugeridos", exigirRol("coordinador"), async (req, res, next) => {
-  try { res.json(await buscarDuplicados(req.params.id)); } catch (err) { next(err); }
+  try { res.json(await buscarDuplicados(req.params.id, req.usuario)); } catch (err) { next(err); }
 });
 router.post("/:id/vincular-duplicado", exigirRol("coordinador"), async (req, res, next) => {
   try {

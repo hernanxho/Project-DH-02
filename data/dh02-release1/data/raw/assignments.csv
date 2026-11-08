@@ -1,0 +1,11 @@
+assignment_id,work_order_id,from_assignee,to_assignee,assigned_at,assigned_by,reason,active_flag
+ASN-5001,WO-3001,,TECH-002,2026-08-17T08:40:00Z,HU-EMP-2201,Plumbing specialist,true
+ASN-5002,WO-3002,,TECH-001,2026-08-17T18:49:00Z,HU-EMP-2202,On-call electrical response,true
+ASN-5003,WO-3003,,TECH-001,2026-08-18T09:20:00Z,HU-EMP-2201,Reported as electrical,false
+ASN-5004,WO-3003,TECH-001,TECH-003,2026-08-18T09:50:00Z,HU-EMP-2202,Technician determined HVAC specialist required,true
+ASN-5005,WO-3004,,TECH-001,2026-08-18T11:30:00Z,HU-EMP-2201,Lighting specialist,true
+ASN-5006,WO-3005,,TECH-004,2026-08-19T08:15:00Z,HU-EMP-2201,General floor condition; no active leak found,true
+ASN-5007,WO-3006,,TECH-007,2026-08-12T14:10:00Z,HU-EMP-2201,HVAC specialist,true
+ASN-5008,WO-3007,,TECH-004,2026-08-13T10:00:00Z,HU-EMP-2201,Door and lock skill,true
+ASN-5009,WO-3008,,TECH-005,2026-08-15T09:10:00Z,HU-EMP-2201,General maintenance,true
+ASN-5010,WO-3009,,TECH-004,2026-08-20T09:45:00Z,HU-EMP-2201,,true

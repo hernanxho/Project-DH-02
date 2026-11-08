@@ -9,6 +9,7 @@ const MOTIVOS = [
 export default function Coordinador() {
   const [solicitudes, setSolicitudes] = useState([]);
   const [responsables, setResponsables] = useState([]);
+  const [nivelesUrgencia, setNivelesUrgencia] = useState([]);
   const [urgencias, setUrgencias] = useState({});
   const [motivos, setMotivos] = useState({});
   const [asignaciones, setAsignaciones] = useState({});
@@ -19,12 +20,14 @@ export default function Coordinador() {
 
   const cargar = useCallback(async () => {
     try {
-      const [filas, tecnicos] = await Promise.all([
+      const [filas, tecnicos, catalogos] = await Promise.all([
         api("/solicitudes"),
         api("/ordenes/responsables"),
+        api("/solicitudes/catalogos"),
       ]);
       setSolicitudes(filas.filter((s) => s.estado === "EN_REVISION" || (s.estado === "VALIDADA" && !s.ordenId)));
       setResponsables(tecnicos);
+      setNivelesUrgencia(catalogos.urgencias);
       setError("");
     } catch (e) {
       setError(e.message);
@@ -43,6 +46,24 @@ export default function Coordinador() {
       await cargar();
     } catch (e) {
       setError(e.codigo === "CONFLICTO_VERSION" ? `${e.message}. Actualizando la cola…` : e.message);
+      await cargar();
+    } finally {
+      setOcupada("");
+    }
+  }
+
+  async function verificarUbicacion(solicitud) {
+    setOcupada(`${solicitud.id}:ubicacion`);
+    setError("");
+    setMensaje("");
+    try {
+      await api(`/solicitudes/${encodeURIComponent(solicitud.id)}/verificar-ubicacion`, {
+        metodo: "POST", cuerpo: { versionVista: solicitud.version },
+      });
+      setMensaje(`Ubicación de ${solicitud.id} confirmada en el directorio.`);
+      await cargar();
+    } catch (e) {
+      setError(e.message);
       await cargar();
     } finally {
       setOcupada("");
@@ -122,7 +143,12 @@ export default function Coordinador() {
             <li key={solicitud.id} style={{ margin: "1rem 0" }}>
               <strong>{solicitud.id}</strong> · {solicitud.ubicacionCodigo} · {solicitud.categoria}
               {solicitud.ubicacionVerificada === 0 || solicitud.ubicacionVerificada === false
-                ? <p role="note">Ubicación sin verificar; no se puede validar todavía.</p>
+                ? <>
+                  <p role="note">Ubicación sin verificar; confirma el código contra el directorio antes de validar.</p>
+                  <button type="button" disabled={Boolean(ocupada)} onClick={() => verificarUbicacion(solicitud)}>
+                    {ocupada === `${solicitud.id}:ubicacion` ? "Verificando…" : "Verificar ubicación"}
+                  </button>
+                </>
                 : null}
               <p>{solicitud.descripcion}</p>
               {solicitud.estado === "EN_REVISION" ? (
@@ -152,7 +178,7 @@ export default function Coordinador() {
                       value={urgencias[solicitud.id] ?? solicitud.urgenciaSugerida}
                       onChange={(e) => setUrgencias((previa) => ({ ...previa, [solicitud.id]: e.target.value }))}
                     >
-                      {["Crítica", "Alta", "Normal", "Baja"].map((nivel) => <option key={nivel}>{nivel}</option>)}
+                      {nivelesUrgencia.map((nivel) => <option key={nivel}>{nivel}</option>)}
                     </select>
                   </label>{" "}
                   <button

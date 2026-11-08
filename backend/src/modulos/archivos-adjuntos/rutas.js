@@ -5,6 +5,7 @@ import path from "node:path";
 import { conTransaccion, pool } from "../../compartido/db.js";
 import { config } from "../../compartido/config.js";
 import { ErrorApp, noEncontrado, prohibido } from "../../compartido/errores.js";
+import { puedeAccederAOrden, puedeAccederASolicitud } from "../identidad-acceso/index.js";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const EXTENSION = { "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp" };
@@ -57,28 +58,36 @@ router.get("/:id", async (req, res, next) => {
   try {
     const [filas] = await pool.query(
       `SELECT a.id, a.subido_por, a.ruta_almacen, a.mime_type,
-              a.solicitud_id, a.evidencia_id,
-              s.registrada_por, s.afectado_subject, s.ubicacion_snapshot,
-              o.responsable_subject
+              a.solicitud_id AS solicitudId, a.evidencia_id AS evidenciaId,
+              s1.registrada_por AS registradaPor, s1.afectado_subject AS afectadoSubject,
+              s1.ubicacion_snapshot AS solicitudSnapshot,
+              e.orden_id AS ordenId, o.responsable_subject AS responsableSubject,
+              s2.afectado_subject AS ordenAfectadoSubject,
+              s2.ubicacion_snapshot AS ordenSnapshot, o.ubicacion_codigo AS ubicacionCodigo
          FROM adjunto a
-         LEFT JOIN solicitud s ON s.id = a.solicitud_id
+         LEFT JOIN solicitud s1 ON s1.id = a.solicitud_id
          LEFT JOIN evidencia e ON e.id = a.evidencia_id
          LEFT JOIN orden_trabajo o ON o.id = e.orden_id
+         LEFT JOIN solicitud s2 ON s2.id = o.solicitud_id
         WHERE a.id = ? LIMIT 1`,
       [req.params.id],
     );
     const archivo = filas[0];
     if (!archivo) throw noEncontrado("Archivo no encontrado");
-    const roles = req.usuario.roles.map((r) => r.rol);
-    const managerial = roles.includes("coordinador") || roles.includes("supervisor");
-    let permitido = archivo.subido_por === req.usuario.subject && !archivo.solicitud_id && !archivo.evidencia_id;
-    if (managerial || archivo.registrada_por === req.usuario.subject || archivo.afectado_subject === req.usuario.subject || archivo.responsable_subject === req.usuario.subject) permitido = true;
-    if (!permitido && archivo.ubicacion_snapshot) {
-      let snapshot = archivo.ubicacion_snapshot;
-      if (typeof snapshot === "string") {
-        try { snapshot = JSON.parse(snapshot); } catch { snapshot = null; }
-      }
-      permitido = req.usuario.roles.some((r) => r.rol === "representante" && r.alcance === snapshot?.edificioCodigo);
+    let permitido = archivo.subido_por === req.usuario.subject && !archivo.solicitudId && !archivo.evidenciaId;
+    if (archivo.solicitudId) {
+      permitido = puedeAccederASolicitud(req.usuario, {
+        registradaPor: archivo.registradaPor,
+        afectadoSubject: archivo.afectadoSubject,
+        ubicacionSnapshot: archivo.solicitudSnapshot,
+      });
+    } else if (archivo.evidenciaId && archivo.ordenId) {
+      permitido = puedeAccederAOrden(req.usuario, {
+        responsableSubject: archivo.responsableSubject,
+        afectadoSubject: archivo.ordenAfectadoSubject,
+        ubicacionSnapshot: archivo.ordenSnapshot,
+        ubicacionCodigo: archivo.ubicacionCodigo,
+      });
     }
     if (!permitido) throw prohibido("No tienes permiso para consultar este archivo");
 

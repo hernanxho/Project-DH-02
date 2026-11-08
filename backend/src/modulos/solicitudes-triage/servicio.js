@@ -2,8 +2,9 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { pool } from "../../compartido/db.js";
 import { ErrorApp, conflictoVersion, noEncontrado, prohibido, transicionInvalida } from "../../compartido/errores.js";
+import { puedeAccederASolicitud, puedeAdministrarSolicitud } from "../identidad-acceso/index.js";
 import { buscarPersona } from "../../adaptadores/identidad.js";
-import { buscarUbicacion } from "../../adaptadores/ubicaciones.js";
+import { buscarUbicacion, listarUbicaciones } from "../../adaptadores/ubicaciones.js";
 import { registrarAuditoria } from "../auditoria/index.js";
 import { encolarNotificacion } from "../notificaciones-plazos/index.js";
 import { obtenerRegla, obtenerReglaConConexion } from "../reglas-politicas/index.js";
@@ -13,7 +14,7 @@ const entradaSolicitud = z.object({
   ubicacionCodigo: z.string().trim().min(1).max(64),
   categoria: z.string().trim().min(1).max(64),
   descripcion: z.string().trim().min(1).max(4000),
-  urgenciaSugerida: z.enum(["Crítica", "Alta", "Normal", "Baja"]),
+  urgenciaSugerida: z.string().trim().min(1).max(16),
   afectadoSubject: z.string().trim().min(1).max(64).optional(),
   adjuntoIds: z.array(z.string().uuid()).max(5).optional().default([]),
 });
@@ -36,6 +37,14 @@ function esCoordinador(usuario) {
 
 export async function crearSolicitud(conn, datos, usuario) {
   const entrada = validarEntrada(datos);
+  const reglaCategorias = await obtenerReglaConConexion(conn, "categorias_mantenimiento");
+  const categorias = Array.isArray(reglaCategorias?.valor) ? reglaCategorias.valor : [];
+  if (!categorias.some((categoria) => categoria.codigo === entrada.categoria)) {
+    throw new ErrorApp(400, "CATEGORIA_INVALIDA", "Selecciona una categoría activa del catálogo de mantenimiento");
+  }
+  const reglaUrgencias = await obtenerReglaConConexion(conn, "niveles_urgencia");
+  const nivelesUrgencia = Array.isArray(reglaUrgencias?.valor) ? reglaUrgencias.valor : [];
+  if (!nivelesUrgencia.includes(entrada.urgenciaSugerida)) throw new ErrorApp(400, "URGENCIA_INVALIDA", "La urgencia sugerida no está permitida por la política vigente");
   const puedeRegistrarTercero = esCoordinador(usuario);
   if (entrada.afectadoSubject && entrada.afectadoSubject !== usuario.subject && !puedeRegistrarTercero) {
     throw prohibido("Solo coordinación puede registrar una solicitud a nombre de otra persona");
@@ -56,6 +65,11 @@ export async function crearSolicitud(conn, datos, usuario) {
   if (ubicacionVerificada && (!ubicacion || !ubicacion.activa)) {
     throw new ErrorApp(400, "UBICACION_INVALIDA", "La ubicación no existe o está inactiva");
   }
+  if (puedeRegistrarTercero && !puedeAdministrarSolicitud(usuario, {
+    ubicacionSnapshot: ubicacion, ubicacionCodigo: entrada.ubicacionCodigo,
+  })) {
+    throw prohibido("Tu alcance no incluye esa ubicación");
+  }
 
   const id = `MR-${randomUUID().replaceAll("-", "").slice(0, 12).toUpperCase()}`;
   const snapshot = ubicacion ? JSON.stringify({ ...ubicacion, capturadaEn: new Date().toISOString() }) : null;
@@ -73,7 +87,10 @@ export async function crearSolicitud(conn, datos, usuario) {
   await registrarAuditoria(conn, {
     entidad: "solicitud", entidadId: id, accion: "SOLICITUD_REGISTRADA",
     actor: usuario.subject, estadoHasta: "EN_REVISION",
-    detalle: { ubicacionCodigo: entrada.ubicacionCodigo, ubicacionVerificada, adjuntoIds: entrada.adjuntoIds },
+    detalle: {
+      ubicacionCodigo: entrada.ubicacionCodigo, ubicacionVerificada, adjuntoIds: entrada.adjuntoIds,
+      versionPoliticaCategorias: reglaCategorias.version, versionPoliticaUrgencia: reglaUrgencias.version,
+    },
   });
   await encolarNotificacion(conn, {
     destinatario: afectadoSubject,
@@ -84,17 +101,27 @@ export async function crearSolicitud(conn, datos, usuario) {
   return { id, estado: "EN_REVISION", version: 1, ubicacionVerificada, adjuntoIds: entrada.adjuntoIds };
 }
 
-function alcanceSolicitudes(usuario) {
-  const roles = usuario.roles.map((r) => r.rol);
-  if (roles.includes("coordinador") || roles.includes("supervisor")) return { sql: "1 = 1", params: [] };
-  if (roles.includes("solicitante")) return { sql: "s.afectado_subject = ?", params: [usuario.subject] };
-  throw prohibido("No tienes permiso para consultar solicitudes");
+export async function obtenerCatalogosSolicitud() {
+  const [ubicaciones, reglaCategorias, reglaUrgencias] = await Promise.all([
+    listarUbicaciones(),
+    obtenerRegla("categorias_mantenimiento"),
+    obtenerRegla("niveles_urgencia"),
+  ]);
+  if (!reglaCategorias || !reglaUrgencias) throw new ErrorApp(503, "CATALOGOS_NO_CONFIGURADOS", "Faltan cargar las políticas de categorías y urgencias");
+  return {
+    ubicaciones,
+    categorias: reglaCategorias.valor,
+    urgencias: reglaUrgencias.valor,
+  };
 }
 
 export async function listarSolicitudes(usuario) {
-  const alcance = alcanceSolicitudes(usuario);
+  if (!usuario.roles.some((rol) => ["solicitante", "coordinador", "supervisor", "representante"].includes(rol.rol))) {
+    throw prohibido("No tienes permiso para consultar solicitudes");
+  }
   const [filas] = await pool.query(
-    `SELECT s.id, s.ubicacion_codigo AS ubicacionCodigo,
+    `SELECT s.id, s.registrada_por AS registradaPor, s.afectado_subject AS afectadoSubject,
+            s.ubicacion_snapshot AS ubicacionSnapshot, s.ubicacion_codigo AS ubicacionCodigo,
             s.ubicacion_verificada AS ubicacionVerificada, s.categoria_reportada AS categoria,
             s.descripcion, s.urgencia_sugerida AS urgenciaSugerida,
             s.urgencia_validada AS urgenciaValidada, s.estado, s.version,
@@ -103,30 +130,31 @@ export async function listarSolicitudes(usuario) {
             o.cerrada_en AS cerradaEn
        FROM solicitud s
        LEFT JOIN orden_trabajo o ON o.solicitud_id = s.id
-      WHERE ${alcance.sql}
       ORDER BY s.creada_en DESC`,
-    alcance.params,
   );
-  return filas;
+  return filas.filter((fila) => puedeAccederASolicitud(usuario, fila))
+    .map(({ registradaPor, afectadoSubject, ubicacionSnapshot, ...fila }) => fila);
 }
 
 export async function obtenerSolicitud(id, usuario) {
-  const alcance = alcanceSolicitudes(usuario);
   const [filas] = await pool.query(
     `SELECT s.id, s.registrada_por AS registradaPor, s.afectado_subject AS afectadoSubject,
             s.ubicacion_codigo AS ubicacionCodigo, s.categoria_reportada AS categoria,
             s.descripcion, s.urgencia_sugerida AS urgenciaSugerida,
             s.urgencia_validada AS urgenciaValidada, s.estado, s.version,
+            s.ubicacion_snapshot AS ubicacionSnapshot,
             s.creada_en AS creadaEn, o.id AS ordenId, o.estado AS estadoOrden,
             o.tipo_cierre AS tipoCierre
        FROM solicitud s
        LEFT JOIN orden_trabajo o ON o.solicitud_id = s.id
-      WHERE s.id = ? AND ${alcance.sql}
-      LIMIT 1`,
-    [id, ...alcance.params],
+      WHERE s.id = ? LIMIT 1`,
+    [id],
   );
   if (!filas[0]) throw noEncontrado("Solicitud no encontrada");
-  return filas[0];
+  const solicitud = filas[0];
+  if (!puedeAccederASolicitud(usuario, solicitud)) throw prohibido("No tienes permiso para consultar esta solicitud");
+  const { ubicacionSnapshot, ...resultado } = solicitud;
+  return resultado;
 }
 
 const entradaValidacion = z.object({
@@ -137,14 +165,17 @@ const entradaValidacion = z.object({
 export async function validarSolicitud(conn, id, datos, usuario) {
   const entrada = parsear(entradaValidacion, datos);
   const [filas] = await conn.query(
-    "SELECT afectado_subject, estado, version, ubicacion_verificada FROM solicitud WHERE id = ? FOR UPDATE",
+    `SELECT afectado_subject AS afectadoSubject, estado, version, ubicacion_verificada AS ubicacionVerificada,
+            ubicacion_snapshot AS ubicacionSnapshot
+       FROM solicitud WHERE id = ? FOR UPDATE`,
     [id],
   );
   const solicitud = filas[0];
   if (!solicitud) throw noEncontrado("Solicitud no encontrada");
   if (solicitud.version !== entrada.versionVista) throw conflictoVersion();
   if (solicitud.estado !== "EN_REVISION") throw transicionInvalida(solicitud.estado, "VALIDADA");
-  if (!solicitud.ubicacion_verificada) {
+  if (!puedeAdministrarSolicitud(usuario, solicitud, ["coordinador"])) throw prohibido("Tu alcance no incluye esa solicitud");
+  if (!solicitud.ubicacionVerificada) {
     throw new ErrorApp(422, "UBICACION_NO_VERIFICADA", "No se puede validar hasta verificar la ubicación");
   }
 
@@ -169,10 +200,39 @@ export async function validarSolicitud(conn, id, datos, usuario) {
     detalle: { urgenciaValidada: entrada.urgenciaValidada, versionPolitica: regla.version },
   });
   await encolarNotificacion(conn, {
-    destinatario: solicitud.afectado_subject, plantilla: "SOLICITUD_VALIDADA",
+    destinatario: solicitud.afectadoSubject, plantilla: "SOLICITUD_VALIDADA",
     carga: { solicitudId: id, estado: "VALIDADA", urgencia: entrada.urgenciaValidada },
   });
   return { id, estado: "VALIDADA", urgenciaValidada: entrada.urgenciaValidada, version: entrada.versionVista + 1, versionPolitica: regla.version };
+}
+
+export async function verificarUbicacionSolicitud(conn, id, datos, usuario) {
+  const entrada = parsear(z.object({ versionVista: z.number().int().positive() }), datos);
+  const [filas] = await conn.query(
+    `SELECT ubicacion_codigo AS ubicacionCodigo, ubicacion_snapshot AS ubicacionSnapshot,
+            ubicacion_verificada AS ubicacionVerificada, estado, version
+       FROM solicitud WHERE id = ? FOR UPDATE`,
+    [id],
+  );
+  const solicitud = filas[0];
+  if (!solicitud) throw noEncontrado("Solicitud no encontrada");
+  if (!puedeAdministrarSolicitud(usuario, solicitud, ["coordinador"])) throw prohibido("Tu alcance no incluye esa solicitud");
+  if (solicitud.version !== entrada.versionVista) throw conflictoVersion();
+  if (solicitud.estado !== "EN_REVISION") throw transicionInvalida(solicitud.estado, "UBICACION_VERIFICADA");
+  const ubicacion = await buscarUbicacion(solicitud.ubicacionCodigo);
+  if (!ubicacion?.activa) throw new ErrorApp(422, "UBICACION_NO_CONFIRMADA", "El directorio no confirma una ubicación activa con ese código");
+  const snapshot = JSON.stringify({ ...ubicacion, capturadaEn: new Date().toISOString() });
+  const [actualizacion] = await conn.query(
+    `UPDATE solicitud SET ubicacion_snapshot = ?, ubicacion_verificada = TRUE, version = version + 1
+      WHERE id = ? AND estado = 'EN_REVISION' AND version = ?`,
+    [snapshot, id, entrada.versionVista],
+  );
+  if (actualizacion.affectedRows !== 1) throw conflictoVersion();
+  await registrarAuditoria(conn, {
+    entidad: "solicitud", entidadId: id, accion: "UBICACION_VERIFICADA",
+    actor: usuario.subject, detalle: { ubicacionCodigo: solicitud.ubicacionCodigo },
+  });
+  return { id, ubicacionVerificada: true, version: entrada.versionVista + 1 };
 }
 
 const entradaRechazo = z.object({
@@ -183,11 +243,13 @@ const entradaRechazo = z.object({
 export async function rechazarSolicitud(conn, id, datos, usuario) {
   const entrada = parsear(entradaRechazo, datos);
   const [filas] = await conn.query(
-    "SELECT afectado_subject, estado, version FROM solicitud WHERE id = ? FOR UPDATE",
+    `SELECT afectado_subject AS afectadoSubject, ubicacion_snapshot AS ubicacionSnapshot,
+            estado, version FROM solicitud WHERE id = ? FOR UPDATE`,
     [id],
   );
   const solicitud = filas[0];
   if (!solicitud) throw noEncontrado("Solicitud no encontrada");
+  if (!puedeAdministrarSolicitud(usuario, solicitud, ["coordinador"])) throw prohibido("Tu alcance no incluye esa solicitud");
   if (solicitud.version !== entrada.versionVista) throw conflictoVersion();
   if (solicitud.estado !== "EN_REVISION") throw transicionInvalida(solicitud.estado, "RECHAZADA");
 
@@ -205,19 +267,21 @@ export async function rechazarSolicitud(conn, id, datos, usuario) {
     detalle: { motivo: entrada.motivo },
   });
   await encolarNotificacion(conn, {
-    destinatario: solicitud.afectado_subject, plantilla: "SOLICITUD_RECHAZADA",
+    destinatario: solicitud.afectadoSubject, plantilla: "SOLICITUD_RECHAZADA",
     carga: { solicitudId: id, estado: "RECHAZADA", motivo: entrada.motivo },
   });
   return { id, estado: "RECHAZADA", motivo: entrada.motivo, version: entrada.versionVista + 1 };
 }
 
-export async function buscarDuplicados(id) {
+export async function buscarDuplicados(id, usuario) {
   const [solicitudes] = await pool.query(
-    "SELECT id, ubicacion_codigo, categoria_reportada, creada_en, estado FROM solicitud WHERE id = ?",
+    `SELECT id, ubicacion_codigo, ubicacion_snapshot AS ubicacionSnapshot,
+            categoria_reportada, creada_en, estado FROM solicitud WHERE id = ?`,
     [id],
   );
   const origen = solicitudes[0];
   if (!origen) throw noEncontrado("Solicitud no encontrada");
+  if (!puedeAdministrarSolicitud(usuario, origen, ["coordinador"])) throw prohibido("Tu alcance no incluye esa solicitud");
   if (origen.estado !== "EN_REVISION") throw new ErrorApp(422, "SOLICITUD_NO_ELEGIBLE", "Solo se buscan duplicados para solicitudes en revisión");
   const regla = await obtenerRegla("ventana_duplicados_horas");
   const horas = Number(regla?.valor?.horas);
@@ -251,12 +315,15 @@ export async function vincularDuplicado(conn, id, datos, actor) {
   const ids = [id, entrada.maestraId].sort();
   const [filas] = await conn.query(
     `SELECT id, afectado_subject, ubicacion_codigo, estado, version, solicitud_maestra_id
+              , ubicacion_snapshot AS ubicacionSnapshot
        FROM solicitud WHERE id IN (?, ?) ORDER BY id FOR UPDATE`,
     ids,
   );
   const secundaria = filas.find((fila) => fila.id === id);
   const maestra = filas.find((fila) => fila.id === entrada.maestraId);
   if (!secundaria || !maestra) throw noEncontrado("No se encontró una de las solicitudes");
+  if (!puedeAdministrarSolicitud(actor, secundaria, ["coordinador"]) ||
+      !puedeAdministrarSolicitud(actor, maestra, ["coordinador"])) throw prohibido("Tu alcance no incluye ambas solicitudes");
   if (secundaria.version !== entrada.versionVista) throw conflictoVersion();
   if (secundaria.estado !== "EN_REVISION") throw new ErrorApp(422, "SOLICITUD_NO_ELEGIBLE", "Solo se pueden vincular solicitudes en revisión");
   if (maestra.estado === "RECHAZADA" || maestra.estado === "CERRADO_DUPLICADO" || maestra.solicitud_maestra_id) {

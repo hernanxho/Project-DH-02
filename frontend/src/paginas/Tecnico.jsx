@@ -1,22 +1,31 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../api/cliente.js";
 
 const ESTADOS = ["ASIGNADA", "EN_PROGRESO", "BLOQUEADA_MATERIALES", "BLOQUEADA_ACCESO", "RESUELTA", "CERRADA"];
+const BORRADOR_KEY = `dh02:tecnico:${localStorage.getItem("subject") ?? ""}`;
+
+function leerBorrador() {
+  try { return JSON.parse(sessionStorage.getItem(BORRADOR_KEY) ?? "{}"); } catch { return {}; }
+}
 
 export default function Tecnico() {
   const [ordenes, setOrdenes] = useState([]);
   const [responsables, setResponsables] = useState([]);
+  const [categorias, setCategorias] = useState([]);
   const [filtroEstado, setFiltroEstado] = useState("");
   const [filtroUbicacion, setFiltroUbicacion] = useState("");
   const [filtroPrioridad, setFiltroPrioridad] = useState("");
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [ocupada, setOcupada] = useState("");
-  const [observaciones, setObservaciones] = useState({});
+  const [observaciones, setObservaciones] = useState(() => leerBorrador().observaciones ?? {});
   const [fotos, setFotos] = useState({});
-  const [bloqueos, setBloqueos] = useState({});
-  const [transferencias, setTransferencias] = useState({});
-  const [materiales, setMateriales] = useState({});
+  const [adjuntosPendientes, setAdjuntosPendientes] = useState(() => leerBorrador().adjuntosPendientes ?? {});
+  const [bloqueos, setBloqueos] = useState(() => leerBorrador().bloqueos ?? {});
+  const [transferencias, setTransferencias] = useState(() => leerBorrador().transferencias ?? {});
+  const [materiales, setMateriales] = useState(() => leerBorrador().materiales ?? {});
+  const [correcciones, setCorrecciones] = useState(() => leerBorrador().correcciones ?? {});
+  const subidasPendientes = useRef(new WeakMap());
 
   const cargar = useCallback(async () => {
     const parametros = new URLSearchParams();
@@ -26,12 +35,14 @@ export default function Tecnico() {
     const queryString = parametros.toString();
     const query = queryString ? `?${queryString}` : "";
     try {
-      const [lista, personas] = await Promise.all([
+      const [lista, personas, catalogos] = await Promise.all([
         api(`/ordenes${query}`),
         api("/ordenes/responsables"),
+        api("/solicitudes/catalogos"),
       ]);
       setOrdenes(lista);
       setResponsables(personas);
+      setCategorias(catalogos.categorias);
       setError("");
     } catch (e) {
       setError(e.message);
@@ -39,6 +50,11 @@ export default function Tecnico() {
   }, [filtroEstado, filtroPrioridad, filtroUbicacion]);
 
   useEffect(() => { cargar(); }, [cargar]);
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(BORRADOR_KEY, JSON.stringify({ observaciones, bloqueos, transferencias, materiales, adjuntosPendientes, correcciones }));
+    } catch { /* El borrador en memoria sigue disponible aunque el navegador no permita guardarlo. */ }
+  }, [observaciones, bloqueos, transferencias, materiales, adjuntosPendientes, correcciones]);
 
   function leerBase64(archivo) {
     return new Promise((resolve, reject) => {
@@ -49,14 +65,24 @@ export default function Tecnico() {
     });
   }
 
-  async function subirFoto(archivo) {
-    if (!archivo) return [];
-    const contenidoBase64 = await leerBase64(archivo);
-    const respuesta = await api("/adjuntos", {
-      metodo: "POST",
-      cuerpo: { nombreArchivo: archivo.name, mimeType: archivo.type, contenidoBase64 },
-    });
-    return [respuesta.id];
+  async function subirFoto(archivo, ordenId) {
+    if (!archivo) return adjuntosPendientes[ordenId] ? [adjuntosPendientes[ordenId]] : [];
+    let subida = subidasPendientes.current.get(archivo);
+    if (!subida) {
+      subida = (async () => {
+        const contenidoBase64 = await leerBase64(archivo);
+        const respuesta = await api("/adjuntos", {
+          metodo: "POST",
+          cuerpo: { nombreArchivo: archivo.name, mimeType: archivo.type, contenidoBase64 },
+        });
+        return respuesta.id;
+      })();
+      subidasPendientes.current.set(archivo, subida);
+      subida.catch(() => subidasPendientes.current.delete(archivo));
+    }
+    const id = await subida;
+    setAdjuntosPendientes((anterior) => ({ ...anterior, [ordenId]: id }));
+    return [id];
   }
 
   async function registrarEvidencia(orden, hacia) {
@@ -69,12 +95,15 @@ export default function Tecnico() {
     setError("");
     setMensaje("");
     try {
-      const adjuntoIds = await subirFoto(fotos[orden.id]);
+      const adjuntoIds = await subirFoto(fotos[orden.id], orden.id);
       await api(`/ejecucion/${encodeURIComponent(orden.id)}/evidencias`, {
         metodo: "POST",
         cuerpo: { tipo: "observacion", resumen, adjuntoIds, hacia, versionVista: orden.version },
       });
       setMensaje(`Orden ${orden.id}: estado actualizado a ${hacia}.`);
+      setObservaciones((anterior) => ({ ...anterior, [orden.id]: "" }));
+      setFotos((anterior) => ({ ...anterior, [orden.id]: null }));
+      setAdjuntosPendientes((anterior) => ({ ...anterior, [orden.id]: null }));
       await cargar();
     } catch (e) {
       setError(e.message);
@@ -95,7 +124,7 @@ export default function Tecnico() {
     setMensaje("");
     try {
       const seguimientoEn = new Date(datos.seguimientoEn).toISOString();
-      const adjuntoIds = await subirFoto(fotos[orden.id]);
+      const adjuntoIds = await subirFoto(fotos[orden.id], orden.id);
       const resultado = await api(`/ejecucion/${encodeURIComponent(orden.id)}/bloqueos`, {
         metodo: "POST",
         cuerpo: {
@@ -109,6 +138,10 @@ export default function Tecnico() {
         },
       });
       setMensaje(`Orden ${orden.id} bloqueada. Seguimiento: ${resultado.bloqueoId}.`);
+      setObservaciones((anterior) => ({ ...anterior, [orden.id]: "" }));
+      setFotos((anterior) => ({ ...anterior, [orden.id]: null }));
+      setAdjuntosPendientes((anterior) => ({ ...anterior, [orden.id]: null }));
+      setBloqueos((anterior) => ({ ...anterior, [orden.id]: {} }));
       await cargar();
     } catch (e) {
       setError(e.message);
@@ -174,6 +207,31 @@ export default function Tecnico() {
     }
   }
 
+  async function corregirCategoria(orden) {
+    const datos = correcciones[orden.id] ?? {};
+    if (!datos.categoria || !datos.motivo?.trim()) {
+      setError("Selecciona la categoría correcta e indica el motivo del cambio.");
+      return;
+    }
+    setOcupada(orden.id);
+    setError("");
+    setMensaje("");
+    try {
+      await api(`/ordenes/${encodeURIComponent(orden.id)}/categoria`, {
+        metodo: "PUT",
+        cuerpo: { categoria: datos.categoria, motivo: datos.motivo, versionVista: orden.version },
+      });
+      setMensaje(`Categoría de ${orden.id} corregida; se conservó ${orden.categoria} como categoría original.`);
+      setCorrecciones((anterior) => ({ ...anterior, [orden.id]: {} }));
+      await cargar();
+    } catch (e) {
+      setError(e.message);
+      await cargar();
+    } finally {
+      setOcupada("");
+    }
+  }
+
   function cambiarBloqueo(ordenId, campo, valor) {
     setBloqueos((anterior) => ({
       ...anterior,
@@ -201,6 +259,7 @@ export default function Tecnico() {
         },
       });
       setMensaje(`La orden ${orden.id} fue transferida.`);
+      setTransferencias((anterior) => ({ ...anterior, [orden.id]: {} }));
       await cargar();
     } catch (e) {
       if (e.codigo === "ADVERTENCIA_REQUIERE_CONFIRMACION" && !advertenciaReconocida && window.confirm(`${e.message}\n\n¿Confirmas la transferencia?`)) {
@@ -255,6 +314,21 @@ export default function Tecnico() {
               <strong>{orden.id}</strong> · {orden.estado} · prioridad {orden.prioridad}
               <p>{orden.ubicacionCodigo} · {orden.categoria}</p>
               <p>{orden.descripcion}</p>
+              {["ASIGNADA", "EN_PROGRESO", "BLOQUEADA_MATERIALES", "BLOQUEADA_ACCESO"].includes(orden.estado) ? (
+                <fieldset>
+                  <legend>Corregir categoría</legend>
+                  <label>
+                    Categoría actualizada
+                    <select value={correcciones[orden.id]?.categoria ?? orden.categoria} onChange={(e) => setCorrecciones((previo) => ({ ...previo, [orden.id]: { ...previo[orden.id], categoria: e.target.value } }))}>
+                      {categorias.map((categoria) => <option key={categoria.codigo} value={categoria.codigo}>{categoria.nombre}</option>)}
+                    </select>
+                  </label>
+                  <label>Motivo<input value={correcciones[orden.id]?.motivo ?? ""} onChange={(e) => setCorrecciones((previo) => ({ ...previo, [orden.id]: { ...previo[orden.id], motivo: e.target.value } }))} /></label>
+                  <button type="button" disabled={ocupada === orden.id} onClick={() => corregirCategoria(orden)}>
+                    Guardar corrección
+                  </button>
+                </fieldset>
+              ) : null}
               {orden.estado === "ASIGNADA" || orden.estado === "EN_PROGRESO" ? (
                 <label>
                   Observación de ejecución
@@ -303,6 +377,17 @@ export default function Tecnico() {
                         <option value="ACCESO">Acceso</option>
                       </select>
                     </label>
+                    {bloqueos[orden.id]?.causal === "ACCESO" ? (
+                      <label>
+                        Subcausa de acceso
+                        <select value={bloqueos[orden.id]?.subcausa ?? ""} onChange={(e) => cambiarBloqueo(orden.id, "subcausa", e.target.value)}>
+                          <option value="">Selecciona</option>
+                          <option value="ACCESO_REQUERIDO">Acceso requerido</option>
+                          <option value="ACCESO_SUPERVISADO">Acceso supervisado</option>
+                          <option value="LLAVE_NO_DISPONIBLE">Llave no disponible</option>
+                        </select>
+                      </label>
+                    ) : null}
                     <label>
                       Parte responsable
                       <input required value={bloqueos[orden.id]?.parteResponsable ?? ""} onChange={(e) => cambiarBloqueo(orden.id, "parteResponsable", e.target.value)} />

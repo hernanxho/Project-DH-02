@@ -1,0 +1,65 @@
+[
+  {
+    "user_id": "HU-STU-2001",
+    "display_name": "Samuel Rios",
+    "email": "samuel.rios@example.edu",
+    "institutional_role": "STUDENT",
+    "active": true
+  },
+  {
+    "user_id": "HU-FAC-2101",
+    "display_name": "Paula Mendez",
+    "email": "paula.mendez@example.edu",
+    "institutional_role": "FACULTY",
+    "active": true
+  },
+  {
+    "user_id": "HU-EMP-2201",
+    "display_name": "Luis Herrera",
+    "email": "luis.herrera@example.edu",
+    "institutional_role": "EMPLOYEE",
+    "active": true
+  },
+  {
+    "user_id": "HU-EMP-2202",
+    "display_name": "Ricardo Torres",
+    "email": "ricardo.torres@example.edu",
+    "institutional_role": "EMPLOYEE",
+    "active": true
+  },
+  {
+    "user_id": "HU-EMP-2203",
+    "display_name": "Ana Sofia Ramirez",
+    "email": "ana.ramirez@example.edu",
+    "institutional_role": "EMPLOYEE",
+    "active": true
+  },
+  {
+    "user_id": "SEC-ONCALL",
+    "display_name": "Campus Security On Call",
+    "email": "security@example.edu",
+    "institutional_role": "EMPLOYEE",
+    "active": true
+  },
+  {
+    "user_id": "TECH-001",
+    "display_name": "Jorge Salcedo",
+    "email": "jorge.salcedo@example.edu",
+    "institutional_role": "EMPLOYEE",
+    "active": true
+  },
+  {
+    "user_id": "TECH-002",
+    "display_name": "Mariana Ibarra",
+    "email": "mariana.ibarra@example.edu",
+    "institutional_role": "EMPLOYEE",
+    "active": true
+  },
+  {
+    "user_id": "TECH-003",
+    "display_name": "Carlos Vega",
+    "email": "carlos.vega@example.edu",
+    "institutional_role": "EMPLOYEE",
+    "active": true
+  }
+]

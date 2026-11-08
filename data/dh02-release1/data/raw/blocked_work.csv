@@ -1,0 +1,5 @@
+block_id,work_order_id,block_reason,responsible_party,blocked_from,expected_next_action,follow_up_at,resolved_at
+BLK-7001,WO-3001,ACCESS_REQUIRED,FAC-COORD,2026-08-17T10:30:00Z,Arrange roof access,2026-08-18T08:00:00Z,
+BLK-7002,WO-3003,SUPERVISED_ACCESS,HU-EMP-2203,2026-08-18T10:05:00Z,Confirm laboratory access window,2026-08-19T08:00:00Z,
+BLK-7003,WO-3007,KEY_UNAVAILABLE,HU-EMP-2203,2026-08-13T13:00:00Z,Provide access key and local contact,2026-08-14T08:00:00Z,
+BLK-7004,WO-3009,,FAC-COORD,2026-08-20T09:50:00Z,Wait until related work is complete,2026-08-24T08:00:00Z,

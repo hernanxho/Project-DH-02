@@ -1,0 +1,13 @@
+update_id,work_order_id,occurred_at,actor_id,update_type,summary,visibility
+UPD-6001,WO-3001,2026-08-17T10:20:00Z,TECH-002,INSPECTION,Leak source appears to be roof drainage rather than plumbing.,INTERNAL
+UPD-6002,WO-3001,2026-08-17T10:30:00Z,TECH-002,BLOCKED,Access to roof required before work can continue.,REQUESTER
+UPD-6003,WO-3002,2026-08-17T18:55:00Z,TECH-001,SAFETY_ACTION,Area isolated and panel power disconnected pending inspection.,INTERNAL
+UPD-6004,WO-3003,2026-08-18T09:45:00Z,TECH-001,CATEGORY_REVISED,"Issue is related to ventilation, not electrical supply.",INTERNAL
+UPD-6005,WO-3003,2026-08-18T10:05:00Z,TECH-003,BLOCKED,Laboratory coordinator unavailable; supervised access required.,INTERNAL
+UPD-6006,WO-3004,2026-08-19T09:20:00Z,TECH-001,TECHNICAL_COMPLETION,Four lamps replaced and tested.,REQUESTER
+UPD-6007,WO-3005,2026-08-19T08:30:00Z,TECH-004,TRIAGE_FINDING,No active pipe leak; issue may be cleaning or drainage-related.,INTERNAL
+UPD-6008,WO-3006,2026-08-13T11:15:00Z,TECH-007,TECHNICAL_COMPLETION,Thermostat settings adjusted.,REQUESTER
+UPD-6009,WO-3006,2026-08-16T14:00:00Z,HU-FAC-2101,REOPEN_REQUEST,Room is still too warm during afternoon hours.,REQUESTER
+UPD-6010,WO-3007,2026-08-13T13:00:00Z,TECH-004,BLOCKED,Local laboratory representative and access key required.,INTERNAL
+UPD-6011,WO-3008,2026-08-15T09:20:00Z,TECH-005,ASSIGNMENT_ACCEPTED,Work accepted for future visit.,INTERNAL
+UPD-6012,WO-3009,2026-08-20T09:50:00Z,TECH-004,BLOCKED,Surface repair must wait until source leak is resolved and ceiling dries.,

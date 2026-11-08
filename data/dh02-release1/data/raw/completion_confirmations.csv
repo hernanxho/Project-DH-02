@@ -1,0 +1,4 @@
+confirmation_id,work_order_id,requested_at,requested_from,response,responded_at,comments
+CNF-10001,WO-3004,2026-08-19T09:25:00Z,HU-FAC-2101,PENDING,,
+CNF-10002,WO-3006,2026-08-13T11:30:00Z,HU-FAC-2101,CONFIRMED,2026-08-13T14:50:00Z,Temperature initially improved.
+CNF-10003,WO-3002,,HU-EMP-2202,,,

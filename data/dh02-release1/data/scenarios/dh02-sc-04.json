@@ -1,0 +1,27 @@
+{
+  "scenario_id": "DH02-SC-04",
+  "title": "Restricted laboratory work blocked by access",
+  "actors": [
+    "laboratory_coordinator",
+    "facilities_coordinator",
+    "electrical_technician",
+    "hvac_technician"
+  ],
+  "initial_records": [
+    "MNT-2004",
+    "WO-3003",
+    "ASN-5003",
+    "ASN-5004",
+    "BLK-7002"
+  ],
+  "known_conditions": [
+    "The initial category was electrical but the issue is related to HVAC.",
+    "The work was reassigned to a specialist.",
+    "Supervised laboratory access is required."
+  ],
+  "questions": [
+    "How should original and corrected categories be preserved?",
+    "Which assignment history is required?",
+    "Who is responsible for resolving the access block?"
+  ]
+}

@@ -58,6 +58,8 @@ Si ya tenías creado el volumen MySQL con el esqueleto anterior, aplica una sola
 docker exec -i -e MYSQL_PWD=dh02 dh02-mysql mysql -u dh02 dh02 < backend/db/migrations/001-prototype-workflows.sql
 ```
 
+Después aplica una sola vez las migraciones [`002-dh02-pack-reference-roles.sql`](backend/db/migrations/002-dh02-pack-reference-roles.sql), [`003-fase1-politicas-auditoria.sql`](backend/db/migrations/003-fase1-politicas-auditoria.sql) y [`004-idempotencia-huella.sql`](backend/db/migrations/004-idempotencia-huella.sql) para agregar perfiles, catálogos configurables, protección del historial y verificación de reintentos a ese volumen existente.
+
 ## Comandos útiles (backend)
 
 | Comando | Qué hace |
@@ -84,6 +86,7 @@ El script [`scripts/verificar-entorno.sh`](scripts/verificar-entorno.sh) comprue
 
 ### Estado del prototipo
 
-La pantalla de solicitante permite crear solicitudes con fotos y consultar las propias; coordinación puede revisar, validar, rechazar, sugerir/vincular duplicados y crear una orden para una solicitud validada. El técnico puede consultar sus órdenes filtradas por ubicación, estado y prioridad, registrar observaciones, evidencias con fotos, materiales y bloqueos, e iniciar o resolver trabajo. Los comandos guardan estado, auditoría y notificaciones en una sola transacción, controlan la versión vista y aceptan claves de idempotencia. Los catálogos e identidades siguen siendo simulados: el pack oficial DH-02 aún no está en el repositorio. Las políticas iniciales se cargan desde `backend/db/seed.sql` al crear la base.
+La pantalla de solicitante permite crear solicitudes con fotos y consultar las propias; coordinación puede revisar, validar, rechazar, sugerir/vincular duplicados y crear una orden para una solicitud validada. El técnico puede consultar sus órdenes filtradas por ubicación, estado y prioridad, registrar observaciones, evidencias con fotos, materiales y bloqueos, e iniciar o resolver trabajo. Los comandos guardan estado, auditoría y notificaciones en una sola transacción, controlan la versión vista y aceptan claves de idempotencia. Los catálogos de ubicaciones y categorías, e identidades/perfiles técnicos, se proyectan del pack DH-02; los CSV operacionales se conservan como fuente de descubrimiento y no se importan sin acordar su normalización. Las políticas iniciales se cargan desde `backend/db/seed.sql` al crear la base.
 
 El avance y los pendientes de la Fase 0 están en [`docs/fase-0.md`](docs/fase-0.md).
+Los datos del release y sus decisiones de integración están documentados en [`docs/pack-dh02.md`](docs/pack-dh02.md).

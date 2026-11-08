@@ -173,6 +173,19 @@ CREATE TABLE auditoria (                  -- solo se anexa; sin UPDATE ni DELETE
   INDEX ix_aud_entidad (entidad, entidad_id, ocurrida_en)
 ) ENGINE=InnoDB;
 
+DELIMITER //
+CREATE TRIGGER trg_auditoria_inmutable_update
+BEFORE UPDATE ON auditoria FOR EACH ROW
+BEGIN
+  SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La auditoria es inmutable';
+END//
+CREATE TRIGGER trg_auditoria_inmutable_delete
+BEFORE DELETE ON auditoria FOR EACH ROW
+BEGIN
+  SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La auditoria es inmutable';
+END//
+DELIMITER ;
+
 CREATE TABLE plazo (                      -- recordatorios y cierre automático procesados por el planificador
   id            VARCHAR(36) PRIMARY KEY,
   orden_id      VARCHAR(36) NOT NULL,
@@ -200,6 +213,7 @@ CREATE TABLE entrega_notificacion (       -- cola de entrega: sobrevive a caída
 CREATE TABLE comando_procesado (
   clave_idempotencia VARCHAR(64) PRIMARY KEY,
   actor_subject      VARCHAR(64) NOT NULL,
+  huella             CHAR(64) NOT NULL,
   resultado          JSON NULL,
   procesado_en       DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
 ) ENGINE=InnoDB;

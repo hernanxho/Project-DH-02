@@ -11,7 +11,7 @@ export const ESTADOS = Object.freeze({
   CERRADA: "CERRADA",
 });
 
-// actores: 'responsable' | 'coordinador' | 'supervisor' | 'afectado' | 'sistema'
+// actores: 'responsable' | 'representante' | 'coordinador' | 'supervisor' | 'afectado' | 'sistema'
 // evidencia: 'si' | 'no' | 'opcional' (matriz de 2.5, ASM-010)
 export const TRANSICIONES = [
   { desde: null,                 hasta: "ASIGNADA",             actores: ["coordinador", "supervisor"], evidencia: "no" },
@@ -19,7 +19,7 @@ export const TRANSICIONES = [
   { desde: "EN_PROGRESO",        hasta: "BLOQUEADA_MATERIALES", actores: ["responsable"], evidencia: "si" },
   { desde: "EN_PROGRESO",        hasta: "BLOQUEADA_ACCESO",     actores: ["responsable"], evidencia: "si" },
   { desde: "BLOQUEADA_MATERIALES", hasta: "EN_PROGRESO",        actores: ["responsable"], evidencia: "opcional" },
-  { desde: "BLOQUEADA_ACCESO",   hasta: "EN_PROGRESO",          actores: ["responsable"], evidencia: "opcional" },
+  { desde: "BLOQUEADA_ACCESO",   hasta: "EN_PROGRESO",          actores: ["responsable", "representante"], evidencia: "opcional" },
   { desde: "EN_PROGRESO",        hasta: "RESUELTA",             actores: ["responsable"], evidencia: "si" },
   { desde: "RESUELTA",           hasta: "EN_PROGRESO",          actores: ["afectado"],    evidencia: "no" },
   { desde: "RESUELTA",           hasta: "CERRADA",              actores: ["afectado"],    evidencia: "no", tipoCierre: "CONFIRMADO" },
