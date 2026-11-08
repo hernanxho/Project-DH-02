@@ -21,11 +21,14 @@ Cada bloque es un issue: el título va en **Title** y el resto en la descripció
 
 El esqueleto ya está en la rama `feature/esqueleto-inicial`. Cada integrante debe clonarlo y levantarlo.
 
+Para revisar herramientas y dependencias instaladas, cada integrante puede ejecutar `bash scripts/verificar-entorno.sh` desde Git Bash en la raíz del repositorio y adjuntar la salida al issue. El script es auxiliar; no reemplaza la verificación de levantar Docker, la API y el frontend.
+
 **Criterios de aceptación**
 - [ ] `docker compose up -d` crea la base con las tablas y datos semilla.
 - [ ] `GET /api/salud` responde `{"estado":"ok","baseDatos":"ok"}`.
 - [ ] `npm test` y `npm run deps:check` pasan.
 - [ ] El frontend abre en `localhost:5173` y permite entrar como los 4 usuarios simulados.
+- [ ] Cada integrante adjuntó la salida de `scripts/verificar-entorno.sh` y anotó cualquier problema específico de su máquina.
 - [ ] Los problemas de instalación encontrados quedan anotados en el README.
 
 ---
@@ -34,6 +37,8 @@ El esqueleto ya está en la rama `feature/esqueleto-inicial`. Cada integrante de
 **Etiquetas:** `compartido` · **Milestone:** Fase 0 · **Asignado:** los tres (sesión conjunta)
 
 Antes de programar, acordar qué función expone cada módulo en su `index.js` y qué consumen los demás. Aquí se rompen las integraciones si no se define primero.
+
+Borrador inicial: [`docs/contratos.md`](docs/contratos.md). Las casillas de aprobación deben quedar marcadas en ese documento únicamente después de revisar el PR en conjunto.
 
 **Criterios de aceptación**
 - [ ] Documento con la firma de cada función pública (nombre, parámetros, retorno, errores).

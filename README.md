@@ -23,7 +23,14 @@ Monolito modular (React + Node.js + MySQL) según el documento de diseño de la 
 
 ## Requisitos
 
-Node.js 20 o superior, Docker Desktop (para MySQL) y Git.
+Node.js 20 o superior, Docker Desktop (para MySQL 8.0.16 o superior) y Git.
+
+## Acuerdos y contribución
+
+- Contratos públicos entre módulos: [`docs/contratos.md`](docs/contratos.md) (propuesta pendiente de aprobación del equipo).
+- Plantilla de ADR para registrar decisiones y comparar diseño previsto con diseño real: [`docs/adr/0000-plantilla.md`](docs/adr/0000-plantilla.md).
+- Plantillas de issues y Pull Requests: [`.github/`](.github/).
+- El diseño de Evaluación 2 selecciona Node.js y MySQL. El uso de esa pila en lugar del starter Python queda sujeto a la aceptación del profesor (E2-ADR-010).
 
 ## Puesta en marcha
 
@@ -68,3 +75,9 @@ Si cambias `schema.sql` y quieres recrear la base: `docker compose down -v && do
 | 3. Cierre y vigilancia | notificaciones-plazos, reglas-politicas, reportes-tablero, planificador | RF-02, RF-09, RF-10, RF-12 |
 
 Las rutas pendientes responden `501 NO_IMPLEMENTADO` y están marcadas con su RF en cada `rutas.js`.
+
+El script [`scripts/verificar-entorno.sh`](scripts/verificar-entorno.sh) comprueba herramientas, archivos y dependencias instaladas. Ejecútalo desde Git Bash en la raíz con `bash scripts/verificar-entorno.sh`; cada integrante debe compartir la salida para cerrar la verificación de las tres máquinas.
+
+### Estado del prototipo
+
+La pantalla de solicitante ya permite crear solicitudes de desarrollo y consultar las propias. El alta guarda solicitud, auditoría y notificación en una sola transacción. Por ahora el catálogo de categorías es texto libre y el formulario aún no sube fotos; ambas cosas requieren completar el flujo y cargar los datos de referencia correspondientes. Los registros creados usan datos simulados, no representan el pack oficial DH-02.
