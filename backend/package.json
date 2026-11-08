@@ -1,0 +1,23 @@
+{
+  "name": "dh02-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Monolito modular (E2-ADR-001) del Sistema de Mantenimiento y Órdenes de Trabajo",
+  "scripts": {
+    "dev": "node --watch --env-file=.env src/index.js",
+    "start": "node --env-file=.env src/index.js",
+    "test": "node --test",
+    "deps:check": "depcruise src --config .dependency-cruiser.cjs"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "mysql2": "^3.11.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "dependency-cruiser": "^16.3.0"
+  }
+}

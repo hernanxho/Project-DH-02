@@ -1,7 +1,22 @@
+# Sistema
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
+
+# Secretos
 .env
+*.env.local
+
+# Node
 node_modules/
+npm-debug.log*
+dist/
+coverage/
+
+# Archivos subidos en desarrollo (almacén de adjuntos)
+backend/almacen/*
+!backend/almacen/.gitkeep
+
+# Python (por si se usan scripts auxiliares)
 __pycache__/
