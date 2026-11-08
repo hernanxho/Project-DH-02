@@ -23,7 +23,7 @@ Monolito modular (React + Node.js + MySQL) según el documento de diseño de la 
 
 ## Requisitos
 
-Node.js 20 o superior, Docker Desktop (para MySQL 8.0.16 o superior) y Git.
+Node.js 22.12 o superior (Vite 8), Docker Desktop (para MySQL 8.0.16 o superior) y Git.
 
 ## Acuerdos y contribución
 
@@ -41,12 +41,12 @@ docker compose up -d
 # 2. Backend
 cd backend
 cp .env.example .env
-npm install
+npm ci
 npm run dev          # http://localhost:3000/api/salud
 
 # 3. Frontend (otra terminal)
 cd frontend
-npm install
+npm ci
 npm run dev          # http://localhost:5173
 ```
 

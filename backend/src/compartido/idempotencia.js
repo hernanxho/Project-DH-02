@@ -2,11 +2,26 @@ import { createHash } from "node:crypto";
 import { ErrorApp } from "./errores.js";
 import { conTransaccion } from "./db.js";
 
+function normalizarJson(valor) {
+  if (Array.isArray(valor)) return valor.map(normalizarJson);
+  if (valor && typeof valor === "object") {
+    return Object.fromEntries(
+      Object.keys(valor).sort().map((clave) => [clave, normalizarJson(valor[clave])]),
+    );
+  }
+  return valor;
+}
+
+export function crearHuellaComando(metodo, ruta, cuerpo) {
+  const contenido = JSON.stringify(normalizarJson(cuerpo ?? null));
+  return createHash("sha256").update(`${metodo}:${ruta}:${contenido}`).digest("hex");
+}
+
 export function conComando(req, ejecutar) {
   return conTransaccion((conn) => conIdempotencia(conn, {
     clave: req.get("Idempotency-Key"),
     actor: req.usuario.subject,
-    huella: createHash("sha256").update(`${req.method}:${req.originalUrl}:${JSON.stringify(req.body ?? null)}`).digest("hex"),
+    huella: crearHuellaComando(req.method, req.originalUrl, req.body),
   }, () => ejecutar(conn)));
 }
 

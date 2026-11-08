@@ -362,9 +362,6 @@ const entradaTransicion = z.object({
 
 export async function solicitarTransicion(conn, datos, actor) {
   const entrada = parsear(entradaTransicion, datos);
-  if (entrada.hacia === "CERRADA") {
-    throw new ErrorApp(422, "CIERRE_REQUIERE_CONFIRMACION", "El cierre debe realizarse mediante el flujo de confirmación del afectado");
-  }
   const [filas] = await conn.query(
     `SELECT o.id, o.estado, o.version, o.responsable_subject, o.resuelta_en,
             o.ubicacion_codigo AS ubicacionCodigo, s.afectado_subject AS afectadoSubject,
@@ -388,6 +385,11 @@ export async function solicitarTransicion(conn, datos, actor) {
       puedeAccederAOrden(actor, orden)) {
     tipoActor = "representante";
   } else throw prohibido("No tienes relación autorizada con esta orden");
+
+  if (entrada.hacia === "CERRADA") {
+    if (tipoActor === "responsable") throw prohibido("El responsable técnico no puede cerrar una orden");
+    throw new ErrorApp(422, "CIERRE_REQUIERE_CONFIRMACION", "El cierre debe realizarse mediante el flujo de confirmación del afectado");
+  }
 
   if (!transicionPermitida(orden.estado, entrada.hacia, tipoActor)) {
     throw transicionInvalida(orden.estado, entrada.hacia);
@@ -450,7 +452,7 @@ export async function solicitarTransicion(conn, datos, actor) {
     if (!confirmaciones[0]) throw new ErrorApp(409, "CONFIRMACION_NO_PENDIENTE", "No hay una confirmación de cierre pendiente para rechazar");
     await conn.query(
       `UPDATE confirmacion_cierre
-          SET respuesta = 'RECHAZADA', respondido_por = ?, respondido_en = UTC_TIMESTAMP(3), motivo = ?
+          SET respuesta = 'RECHAZADA', respondida_por = ?, respondida_en = UTC_TIMESTAMP(3), motivo = ?
         WHERE id = ? AND respuesta IS NULL`,
       [actor.subject, entrada.motivo, confirmaciones[0].id],
     );
@@ -517,7 +519,9 @@ export async function solicitarTransicion(conn, datos, actor) {
   return { ordenId: datos.ordenId, estado: entrada.hacia, version: entrada.versionVista + 1 };
 }
 
-function puedeResponderCierre(usuario, { afectadoSubject, ubicacionSnapshot }) {
+function puedeResponderCierre(usuario, orden) {
+  const afectadoSubject = orden.afectadoSubject ?? orden.afectado_subject;
+  const ubicacionSnapshot = orden.ubicacionSnapshot ?? orden.ubicacion_snapshot;
   if (usuario.subject === afectadoSubject) return true;
   let ubicacion = ubicacionSnapshot;
   if (typeof ubicacionSnapshot === "string") {
@@ -587,7 +591,7 @@ export async function confirmarCierre(conn, ordenId, datos, usuario) {
   );
   await conn.query(
     `UPDATE confirmacion_cierre
-        SET respuesta = 'CONFIRMADA', respondido_por = ?, respondido_en = UTC_TIMESTAMP(3)
+        SET respuesta = 'CONFIRMADA', respondida_por = ?, respondida_en = UTC_TIMESTAMP(3)
       WHERE id = ? AND respuesta IS NULL`,
     [usuario.subject, confirmacion.id],
   );
@@ -624,7 +628,7 @@ export async function rechazarCierre(conn, ordenId, datos, usuario) {
   );
   await conn.query(
     `UPDATE confirmacion_cierre
-        SET respuesta = 'RECHAZADA', respondido_por = ?, respondido_en = UTC_TIMESTAMP(3), motivo = ?
+        SET respuesta = 'RECHAZADA', respondida_por = ?, respondida_en = UTC_TIMESTAMP(3), motivo = ?
       WHERE id = ? AND respuesta IS NULL`,
     [usuario.subject, entrada.motivo, confirmacion.id],
   );
@@ -778,7 +782,7 @@ export async function cerrarAutomaticamente(conn, ordenId, plazoId = null) {
   if (actualizacion.affectedRows !== 1) throw conflictoVersion();
   await conn.query(
     `UPDATE confirmacion_cierre
-        SET respuesta = 'VENCIDA', respondido_por = 'SISTEMA', respondido_en = UTC_TIMESTAMP(3)
+        SET respuesta = 'VENCIDA', respondida_por = 'SISTEMA', respondida_en = UTC_TIMESTAMP(3)
       WHERE id = ? AND respuesta IS NULL`,
     [confirmacion.id],
   );

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { ErrorApp, noEncontrado, prohibido } from "../../compartido/errores.js";
 import { registrarAuditoria } from "../auditoria/index.js";
+import { encolarNotificacion } from "../notificaciones-plazos/index.js";
 import { solicitarTransicion } from "../ordenes-trabajo/index.js";
 import { vincularAdjuntos } from "../archivos-adjuntos/index.js";
 import { puedeAccederAOrden } from "../identidad-acceso/index.js";
