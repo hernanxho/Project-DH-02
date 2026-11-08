@@ -1,11 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { pool } from "../../compartido/db.js";
-import { ErrorApp, noEncontrado, prohibido } from "../../compartido/errores.js";
+import { ErrorApp, conflictoVersion, noEncontrado, prohibido, transicionInvalida } from "../../compartido/errores.js";
 import { buscarPersona } from "../../adaptadores/identidad.js";
 import { buscarUbicacion } from "../../adaptadores/ubicaciones.js";
 import { registrarAuditoria } from "../auditoria/index.js";
 import { encolarNotificacion } from "../notificaciones-plazos/index.js";
+import { obtenerReglaConConexion } from "../reglas-politicas/index.js";
 
 const entradaSolicitud = z.object({
   ubicacionCodigo: z.string().trim().min(1).max(64),
@@ -15,12 +16,16 @@ const entradaSolicitud = z.object({
   afectadoSubject: z.string().trim().min(1).max(64).optional(),
 });
 
-function validarEntrada(datos) {
-  const resultado = entradaSolicitud.safeParse(datos);
+function parsear(esquema, datos) {
+  const resultado = esquema.safeParse(datos);
   if (!resultado.success) {
     throw new ErrorApp(400, "VALIDACION", resultado.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "));
   }
   return resultado.data;
+}
+
+function validarEntrada(datos) {
+  return parsear(entradaSolicitud, datos);
 }
 
 function esCoordinador(usuario) {
@@ -86,7 +91,8 @@ function alcanceSolicitudes(usuario) {
 export async function listarSolicitudes(usuario) {
   const alcance = alcanceSolicitudes(usuario);
   const [filas] = await pool.query(
-    `SELECT s.id, s.ubicacion_codigo AS ubicacionCodigo, s.categoria_reportada AS categoria,
+    `SELECT s.id, s.ubicacion_codigo AS ubicacionCodigo,
+            s.ubicacion_verificada AS ubicacionVerificada, s.categoria_reportada AS categoria,
             s.descripcion, s.urgencia_sugerida AS urgenciaSugerida,
             s.urgencia_validada AS urgenciaValidada, s.estado, s.version,
             s.creada_en AS creadaEn, o.id AS ordenId, o.estado AS estadoOrden,
@@ -117,4 +123,86 @@ export async function obtenerSolicitud(id, usuario) {
   );
   if (!filas[0]) throw noEncontrado("Solicitud no encontrada");
   return filas[0];
+}
+
+const entradaValidacion = z.object({
+  urgenciaValidada: z.string().trim().min(1).max(16),
+  versionVista: z.number().int().positive(),
+});
+
+export async function validarSolicitud(conn, id, datos, usuario) {
+  const entrada = parsear(entradaValidacion, datos);
+  const [filas] = await conn.query(
+    "SELECT afectado_subject, estado, version, ubicacion_verificada FROM solicitud WHERE id = ? FOR UPDATE",
+    [id],
+  );
+  const solicitud = filas[0];
+  if (!solicitud) throw noEncontrado("Solicitud no encontrada");
+  if (solicitud.version !== entrada.versionVista) throw conflictoVersion();
+  if (solicitud.estado !== "EN_REVISION") throw transicionInvalida(solicitud.estado, "VALIDADA");
+  if (!solicitud.ubicacion_verificada) {
+    throw new ErrorApp(422, "UBICACION_NO_VERIFICADA", "No se puede validar hasta verificar la ubicación");
+  }
+
+  const regla = await obtenerReglaConConexion(conn, "niveles_urgencia");
+  if (!regla) throw new ErrorApp(503, "POLITICA_NO_CONFIGURADA", "Falta configurar la política de niveles de urgencia");
+  const niveles = Array.isArray(regla.valor) ? regla.valor : [];
+  if (!niveles.includes(entrada.urgenciaValidada)) {
+    throw new ErrorApp(400, "URGENCIA_INVALIDA", "La urgencia no está permitida por la política vigente");
+  }
+
+  const [actualizacion] = await conn.query(
+    `UPDATE solicitud
+        SET estado = 'VALIDADA', urgencia_validada = ?, version = version + 1
+      WHERE id = ? AND estado = 'EN_REVISION' AND version = ?`,
+    [entrada.urgenciaValidada, id, entrada.versionVista],
+  );
+  if (actualizacion.affectedRows !== 1) throw conflictoVersion();
+
+  await registrarAuditoria(conn, {
+    entidad: "solicitud", entidadId: id, accion: "SOLICITUD_VALIDADA",
+    actor: usuario.subject, estadoDesde: "EN_REVISION", estadoHasta: "VALIDADA",
+    detalle: { urgenciaValidada: entrada.urgenciaValidada, versionPolitica: regla.version },
+  });
+  await encolarNotificacion(conn, {
+    destinatario: solicitud.afectado_subject, plantilla: "SOLICITUD_VALIDADA",
+    carga: { solicitudId: id, estado: "VALIDADA", urgencia: entrada.urgenciaValidada },
+  });
+  return { id, estado: "VALIDADA", urgenciaValidada: entrada.urgenciaValidada, version: entrada.versionVista + 1, versionPolitica: regla.version };
+}
+
+const entradaRechazo = z.object({
+  motivo: z.enum(["FUERA_DE_ALCANCE", "INFORMACION_INCOMPLETA"]),
+  versionVista: z.number().int().positive(),
+});
+
+export async function rechazarSolicitud(conn, id, datos, usuario) {
+  const entrada = parsear(entradaRechazo, datos);
+  const [filas] = await conn.query(
+    "SELECT afectado_subject, estado, version FROM solicitud WHERE id = ? FOR UPDATE",
+    [id],
+  );
+  const solicitud = filas[0];
+  if (!solicitud) throw noEncontrado("Solicitud no encontrada");
+  if (solicitud.version !== entrada.versionVista) throw conflictoVersion();
+  if (solicitud.estado !== "EN_REVISION") throw transicionInvalida(solicitud.estado, "RECHAZADA");
+
+  const [actualizacion] = await conn.query(
+    `UPDATE solicitud
+        SET estado = 'RECHAZADA', motivo_rechazo = ?, version = version + 1
+      WHERE id = ? AND estado = 'EN_REVISION' AND version = ?`,
+    [entrada.motivo, id, entrada.versionVista],
+  );
+  if (actualizacion.affectedRows !== 1) throw conflictoVersion();
+
+  await registrarAuditoria(conn, {
+    entidad: "solicitud", entidadId: id, accion: "SOLICITUD_RECHAZADA",
+    actor: usuario.subject, estadoDesde: "EN_REVISION", estadoHasta: "RECHAZADA",
+    detalle: { motivo: entrada.motivo },
+  });
+  await encolarNotificacion(conn, {
+    destinatario: solicitud.afectado_subject, plantilla: "SOLICITUD_RECHAZADA",
+    carga: { solicitudId: id, estado: "RECHAZADA", motivo: entrada.motivo },
+  });
+  return { id, estado: "RECHAZADA", motivo: entrada.motivo, version: entrada.versionVista + 1 };
 }

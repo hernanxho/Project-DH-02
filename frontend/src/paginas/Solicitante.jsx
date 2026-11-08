@@ -67,7 +67,7 @@ export default function Solicitante() {
         <button type="submit" disabled={guardando}>{guardando ? "Enviando…" : "Enviar solicitud"}</button>
       </form>
       <p role="status">{mensaje}</p>
-      {error && <p role="alert" style={{ color: "crimson" }}>{error}</p>}
+      {error ? <p role="alert" style={{ color: "crimson" }}>{error}</p> : null}
 
       <h2>Mis solicitudes</h2>
       {solicitudes.length === 0 ? <p>Aún no tienes solicitudes.</p> : (
@@ -75,7 +75,7 @@ export default function Solicitante() {
           {solicitudes.map((solicitud) => (
             <li key={solicitud.id}>
               <strong>{solicitud.id}</strong> · {solicitud.estado} · {solicitud.categoria} · {solicitud.ubicacionCodigo}
-              {solicitud.estadoOrden && <span> · Orden: {solicitud.estadoOrden}{solicitud.tipoCierre ? ` (${solicitud.tipoCierre})` : ""}</span>}
+              {solicitud.estadoOrden ? <span> · Orden: {solicitud.estadoOrden}{solicitud.tipoCierre ? ` (${solicitud.tipoCierre})` : ""}</span> : null}
               <p>{solicitud.descripcion}</p>
             </li>
           ))}

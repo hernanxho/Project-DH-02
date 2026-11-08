@@ -18,4 +18,5 @@ INSERT INTO perfil_tecnico (subject, unidad, disponible, habilitado_restringidas
 INSERT INTO regla_politica (id, clave, version, valor, vigente) VALUES
  (UUID(), 'plazo_cierre_horas',   1, JSON_OBJECT('horas', 72), TRUE),
  (UUID(), 'recordatorios_horas',  1, JSON_ARRAY(24, 48), TRUE),
- (UUID(), 'ventana_reapertura_horas', 1, JSON_OBJECT('horas', 48), TRUE);
+ (UUID(), 'ventana_reapertura_horas', 1, JSON_OBJECT('horas', 48), TRUE),
+ (UUID(), 'niveles_urgencia', 1, JSON_ARRAY('Crítica', 'Alta', 'Normal', 'Baja'), TRUE);

@@ -80,4 +80,4 @@ El script [`scripts/verificar-entorno.sh`](scripts/verificar-entorno.sh) comprue
 
 ### Estado del prototipo
 
-La pantalla de solicitante ya permite crear solicitudes de desarrollo y consultar las propias. El alta guarda solicitud, auditoría y notificación en una sola transacción. Por ahora el catálogo de categorías es texto libre y el formulario aún no sube fotos; ambas cosas requieren completar el flujo y cargar los datos de referencia correspondientes. Los registros creados usan datos simulados, no representan el pack oficial DH-02.
+La pantalla de solicitante permite crear solicitudes de desarrollo y consultar las propias; coordinación puede revisar, validar o rechazar las que están pendientes. Los comandos guardan solicitud, auditoría y notificación en una sola transacción y controlan la versión vista. El alta aún usa categoría de texto libre y no sube fotos; los registros usan datos simulados, no representan el pack oficial DH-02. La política inicial de urgencias se carga desde `backend/db/seed.sql` al crear la base.

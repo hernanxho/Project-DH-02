@@ -32,7 +32,8 @@ Los detalles de ocultamiento de existencia y los nombres exactos de roles deben 
 | `crearSolicitud` | `async crearSolicitud(conn, datos, actor)` | `Promise<{ id, estado, version, ubicacionVerificada }>` | Implementada: valida identidad afectada y ubicación simulada; inserta solicitud, auditoría y notificación en la conexión recibida. En la API la transacción se abre con `conTransaccion`. Aún no carga foto ni valida categoría contra el catálogo del pack. |
 | `obtenerSolicitud` | `async obtenerSolicitud(id, contexto)` | `Promise<Solicitud>` | Implementada para solicitante, coordinación y supervisión; aplica alcance por solicitante y devuelve `404` si no existe o no es visible. |
 | `listarSolicitudes` | `async listarSolicitudes(contexto)` | `Promise<Solicitud[]>` | Implementada para solicitante, coordinación y supervisión; el alcance no depende de filtros libres del cliente. |
-| `resolverSolicitud` | `async resolverSolicitud(conn, { solicitudId, decision, motivo, actor, versionVista })` | `Promise<{ solicitudId, estado, ordenId \| null, version }>` | Rechaza versión obsoleta con `409 CONFLICTO_VERSION`; una aprobación crea la orden mediante API pública y audita dentro de la misma transacción. |
+| `validarSolicitud` | `async validarSolicitud(conn, id, datos, actor)` con `{ urgenciaValidada, versionVista }` | `Promise<{ id, estado, urgenciaValidada, version, versionPolitica }>` | Implementada: exige `EN_REVISION`, versión vigente, nivel permitido por la política versionada y registra el cambio, auditoría y notificación en la misma transacción. |
+| `rechazarSolicitud` | `async rechazarSolicitud(conn, id, datos, actor)` con `{ motivo, versionVista }` | `Promise<{ id, estado, motivo, version }>` | Implementada: exige motivo de catálogo, `EN_REVISION` y versión vigente; registra el cambio, auditoría y notificación en la misma transacción. |
 
 ## Órdenes de trabajo
 
