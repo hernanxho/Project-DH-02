@@ -1,6 +1,6 @@
 # Fase 1 — estado de implementación
 
-La Fase 1 cubre la entrada y el triage de solicitudes, el núcleo de órdenes, la ejecución, el cierre y el tablero descritos en `issues-dh02.md`.
+La Fase 1 cubre la entrada y el triage de solicitudes, el núcleo de órdenes, la ejecución, el cierre y el tablero descritos en la Evaluación 2 (`eva2final.md`).
 
 ## Implementado en esta rama
 

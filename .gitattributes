@@ -1,0 +1,8 @@
+# Archivos internos del equipo: se quedan en el repositorio pero no entran al ZIP de entrega (git archive)
+.github/                           export-ignore
+issues-dh02.md                     export-ignore
+docs/fase-0.md                     export-ignore
+docs/adr/0000-plantilla.md         export-ignore
+docs/Evalucion2.html               export-ignore
+docs/evaluacion-3/05-guion-video.md export-ignore
+.gitattributes                     export-ignore

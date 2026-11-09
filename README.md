@@ -19,7 +19,6 @@ Software Design II · Horizon University · Digital Horizon Initiative
 | ADRs: estado vigente y diseño previsto vs. real | [`docs/evaluacion-3/02-decisiones-adr.md`](docs/evaluacion-3/02-decisiones-adr.md) |
 | Trazabilidad requisito → decisión → componente → código → prueba | [`docs/evaluacion-3/03-trazabilidad.md`](docs/evaluacion-3/03-trazabilidad.md) |
 | Pruebas, resultados, simulado vs. real, riesgos y pendientes | [`docs/evaluacion-3/04-pruebas-y-limitaciones.md`](docs/evaluacion-3/04-pruebas-y-limitaciones.md) |
-| Guion del video | [`docs/evaluacion-3/05-guion-video.md`](docs/evaluacion-3/05-guion-video.md) |
 | Diseño de la Evaluación 2 (base) | [`docs/eva2final.md`](docs/eva2final.md) |
 | Contratos entre módulos | [`docs/contratos.md`](docs/contratos.md) |
 | Código del backend / frontend | [`backend/src/`](backend/src/) · [`frontend/src/`](frontend/src/) |
