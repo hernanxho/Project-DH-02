@@ -1,92 +1,122 @@
-# Project DH-02: Sistema de Mantenimiento y Órdenes de Trabajo
+# DH-02 · Sistema de Mantenimiento y Órdenes de Trabajo — Evaluación 3
 
-Software Design II, Horizon University · Digital Horizon Initiative
+Software Design II · Horizon University · Digital Horizon Initiative
 
-**Equipo:** Hernán Mundell, David Gutierrez, Mike Buelvas
+| | |
+|---|---|
+| **Equipo** | Hernán Mundell, David Gutierrez, Mike Buelvas |
+| **Proyecto** | DH-02 · Campus Facilities & Operations |
+| **Versión** | `v0.3.0` · Evaluación 3 · 8 de noviembre de 2026 |
+| **Caso de uso implementado** | Reporte → triage → orden con responsable explícito → ejecución con evidencia → bloqueo → resolución → cierre confirmado por el afectado o automático a las 72 h |
+| **Arquitectura** | Monolito modular: React (Vite) + Node.js (Express) + MySQL 8 (E2-ADR-001, E2-ADR-009) |
+| **Video** | ver [`video-link.txt`](video-link.txt) |
 
-Monolito modular (React + Node.js + MySQL) según el documento de diseño de la Evaluación 2 (`docs/`).
+## Índice de la entrega
 
-## Estructura
+| Qué buscas | Dónde está |
+|---|---|
+| Arquitectura actualizada (vistas, componentes, secuencia, estados, datos, despliegue) | [`docs/evaluacion-3/01-arquitectura-actualizada.md`](docs/evaluacion-3/01-arquitectura-actualizada.md) |
+| ADRs: estado vigente y diseño previsto vs. real | [`docs/evaluacion-3/02-decisiones-adr.md`](docs/evaluacion-3/02-decisiones-adr.md) |
+| Trazabilidad requisito → decisión → componente → código → prueba | [`docs/evaluacion-3/03-trazabilidad.md`](docs/evaluacion-3/03-trazabilidad.md) |
+| Pruebas, resultados, simulado vs. real, riesgos y pendientes | [`docs/evaluacion-3/04-pruebas-y-limitaciones.md`](docs/evaluacion-3/04-pruebas-y-limitaciones.md) |
+| Guion del video | [`docs/evaluacion-3/05-guion-video.md`](docs/evaluacion-3/05-guion-video.md) |
+| Diseño de la Evaluación 2 (base) | [`docs/eva2final.md`](docs/eva2final.md) |
+| Contratos entre módulos | [`docs/contratos.md`](docs/contratos.md) |
+| Código del backend / frontend | [`backend/src/`](backend/src/) · [`frontend/src/`](frontend/src/) |
+| Pruebas unitarias / de integración | [`backend/test/`](backend/test/) · [`backend/integracion/`](backend/integracion/) |
+| Evidencia de ejecución (salidas y capturas) | [`evidence/`](evidence/) |
+| Datos sintéticos del pack DH-02 | [`data/dh02-release1/`](data/dh02-release1/) |
 
-```
-├── docs/                 documento de diseño (Evaluación 2)
-├── backend/              Node.js (API + módulos de negocio + planificador)
-│   ├── db/               schema.sql y seed.sql (MySQL)
-│   ├── src/modulos/      un módulo por responsabilidad (sección 5.10)
-│   ├── src/adaptadores/  servicios simulados: identidad, ubicaciones, notificación
-│   ├── src/planificador/ plazos y entregas
-│   ├── src/compartido/   config, db, errores, validación
-│   └── test/
-├── frontend/             React (Vite)
-└── docker-compose.yml    MySQL para desarrollo
-```
+## 1. Requisitos
 
-## Requisitos
+- Node.js **22.12 o superior** (Vite 8 lo exige) y npm.
+- Docker Desktop (para MySQL 8.0). Alternativa sin Docker: un MySQL 8.0.16+ local con la base `dh02` y el usuario `dh02`/`dh02`.
+- Git Bash (Windows) o cualquier terminal bash.
 
-Node.js 22.12 o superior (Vite 8), Docker Desktop (para MySQL 8.0.16 o superior) y Git.
-
-## Acuerdos y contribución
-
-- Contratos públicos entre módulos: [`docs/contratos.md`](docs/contratos.md) (propuesta pendiente de aprobación del equipo).
-- Plantilla de ADR para registrar decisiones y comparar diseño previsto con diseño real: [`docs/adr/0000-plantilla.md`](docs/adr/0000-plantilla.md).
-- Plantillas de issues y Pull Requests: [`.github/`](.github/).
-- La decisión del equipo para la implementación es Node.js y MySQL, siguiendo el diseño de Evaluación 2. Falta confirmar si el profesor acepta usar esta pila en lugar del starter Python (E2-ADR-010).
-
-## Puesta en marcha
+## 2. Preparación (datos sintéticos, sin credenciales reales)
 
 ```bash
-# 1. Base de datos (crea las tablas y datos semilla la primera vez)
+# Base de datos: crea tablas (backend/db/schema.sql) y carga roles, técnicos y reglas (backend/db/seed.sql)
 docker compose up -d
 
-# 2. Backend
+# Backend
 cd backend
 cp .env.example .env
 npm ci
-npm run dev          # http://localhost:3000/api/salud
 
-# 3. Frontend (otra terminal)
+# Frontend (otra terminal)
 cd frontend
 npm ci
-npm run dev          # http://localhost:5173
 ```
 
-Si cambias `schema.sql` y quieres recrear la base: `docker compose down -v && docker compose up -d`.
+Los catálogos (12 ubicaciones activas, 14 categorías, identidades y técnicos) se leen del pack del profesor en `data/dh02-release1/`; no requieren carga manual.
 
-Si ya tenías creado el volumen MySQL con el esqueleto anterior, aplica una sola vez la migración [`backend/db/migrations/001-prototype-workflows.sql`](backend/db/migrations/001-prototype-workflows.sql) desde Git Bash:
+Sin Docker, desde la raíz: `mysql -u dh02 -p dh02 < backend/db/schema.sql` y luego `seed.sql`.
+
+## 3. Ejecución
 
 ```bash
-docker exec -i -e MYSQL_PWD=dh02 dh02-mysql mysql -u dh02 dh02 < backend/db/migrations/001-prototype-workflows.sql
+cd backend && npm run dev     # API en http://localhost:3000  (salud: /api/salud)
+cd frontend && npm run dev    # Interfaz en http://localhost:5173
 ```
 
-Después aplica una sola vez las migraciones [`002-dh02-pack-reference-roles.sql`](backend/db/migrations/002-dh02-pack-reference-roles.sql), [`003-fase1-politicas-auditoria.sql`](backend/db/migrations/003-fase1-politicas-auditoria.sql) y [`004-idempotencia-huella.sql`](backend/db/migrations/004-idempotencia-huella.sql) para agregar perfiles, catálogos configurables, protección del historial y verificación de reintentos a ese volumen existente.
+**Usuarios de prueba** (identidad simulada: se elige en la pantalla de inicio, sin contraseña):
 
-## Comandos útiles (backend)
+| Usuario | Rol | Para qué en la demo |
+|---|---|---|
+| Samuel Rios (`HU-STU-2001`) | Solicitante / afectado | Reporta y confirma o rechaza el cierre |
+| Luis Herrera (`HU-EMP-2201`) | Coordinación | Triage, duplicados, crea la orden |
+| Jorge Salcedo (`TECH-001`) | Técnico electricidad | Ejecuta, evidencia, bloquea, resuelve |
+| Mariana Ibarra (`TECH-002`) | Técnico plomería | Caso de acceso denegado (no es responsable) |
+| Ricardo Torres (`HU-EMP-2202`) | Supervisión | Reasigna, tablero, reglas |
+| Ana Sofia Ramirez (`HU-EMP-2203`) | Representante de `MAIN-B03` | Desbloquea órdenes por acceso |
 
-| Comando | Qué hace |
-|---|---|
-| `npm test` | Pruebas (tabla de transiciones de la orden) |
-| `npm run deps:check` | Verifica que ningún módulo importe archivos internos de otro (QS-10) |
+**Recorrido sugerido:** Samuel reporta un daño en `MAIN-B01-101` → Luis lo valida y crea la orden para Jorge → Jorge la inicia con una observación, registra un bloqueo de materiales, la reanuda y la resuelve → Samuel la ve en “Pendientes de confirmar” y confirma el cierre. Caso de error: Mariana no ve la orden; si intenta actuar sobre ella la API responde `403`.
+
+## 4. Verificación
+
+```bash
+cd backend
+npm test                  # 11 pruebas unitarias (sin BD)
+npm run test:integracion  # 9 pruebas contra la API y MySQL reales (requiere la BD en marcha)
+npm run deps:check        # ningún módulo importa archivos internos de otro
+```
+
+Resultado esperado: `# pass 11`, `# pass 9` y `no dependency violations found`. Las salidas del 8 de noviembre de 2026 están en `evidence/`. Las pruebas de integración crean datos propios; para volver a una base limpia antes de la demo: `docker compose down -v && docker compose up -d`.
+
+Si ya tenías el volumen de MySQL de una versión anterior del esqueleto, aplica una vez las migraciones `backend/db/migrations/001` a `004` (o recrea el volumen).
+
+## 5. Limitaciones conocidas
+
+- Identidad, directorio de ubicaciones y notificaciones son **simulados** (adaptadores).
+- Duplicados, reapertura y tablero funcionan pero solo se verificaron a mano.
+- No se importan las órdenes históricas del pack (tienen anomalías intencionales sin regla de normalización acordada).
+- Detalle completo y riesgos abiertos: [`docs/evaluacion-3/04-pruebas-y-limitaciones.md`](docs/evaluacion-3/04-pruebas-y-limitaciones.md).
+
+## 6. Estructura
+
+```
+├── README.md              este archivo (índice y pasos)
+├── video-link.txt         enlace al video de 5–6 min
+├── docs/                  E2 (eva2final.md), contratos, fases y evaluacion-3/
+├── backend/               API Node.js: src/modulos (un módulo por responsabilidad), adaptadores, planificador
+│   ├── db/                schema.sql, seed.sql, migrations/
+│   ├── test/              pruebas unitarias
+│   └── integracion/       pruebas de integración (Fase 2/3)
+├── frontend/              React + Vite: páginas por rol
+├── data/dh02-release1/    pack de datos del profesor (sin modificar)
+├── evidence/              salidas de pruebas y capturas
+└── docker-compose.yml     MySQL para desarrollo
+```
 
 ## Reglas del equipo
 
-- Cada módulo expone **solo** su `index.js`; no se importan archivos internos de otro módulo.
-- Las reglas de dominio (`transiciones.js`) no importan base de datos ni adaptadores.
-- Ramas `feature/...`, Pull Request y revisión de otro compañero antes de unir a `main`.
-- `git pull` antes de empezar a trabajar. Prefijos de commit: `feat:`, `fix:`, `docs:`, `test:`.
+- Cada módulo expone solo su `index.js`; las reglas de dominio (`transiciones.js`) no importan BD ni adaptadores.
+- Todo comando HTTP lleva `Idempotency-Key` y se ejecuta en una sola transacción (`compartido/idempotencia.js`).
+- Ramas `feature/...` + Pull Request revisado antes de unir a `main`.
 
-## Reparto de módulos
-
-| Persona | Módulos | Requisitos |
-|---|---|---|
-| 1. Entrada y control | identidad-acceso, solicitudes-triage, adaptadores | RF-13, RF-01 a RF-04 |
-| 2. Núcleo de órdenes | ordenes-trabajo, ejecucion-evidencia, auditoria | RF-05 a RF-08, RF-11 |
-| 3. Cierre y vigilancia | notificaciones-plazos, reglas-politicas, reportes-tablero, planificador | RF-02, RF-09, RF-10, RF-12 |
-
-El script [`scripts/verificar-entorno.sh`](scripts/verificar-entorno.sh) comprueba herramientas, archivos y dependencias instaladas. Ejecútalo desde Git Bash en la raíz con `bash scripts/verificar-entorno.sh`; cada integrante debe compartir la salida para cerrar la verificación de las tres máquinas.
-
-### Estado del prototipo
-
-La pantalla de solicitante permite crear solicitudes con fotos y consultar las propias; coordinación puede revisar, validar, rechazar, sugerir/vincular duplicados y crear una orden para una solicitud validada. El técnico puede consultar sus órdenes filtradas por ubicación, estado y prioridad, registrar observaciones, evidencias con fotos, materiales y bloqueos, e iniciar o resolver trabajo. Los comandos guardan estado, auditoría y notificaciones en una sola transacción, controlan la versión vista y aceptan claves de idempotencia. Los catálogos de ubicaciones y categorías, e identidades/perfiles técnicos, se proyectan del pack DH-02; los CSV operacionales se conservan como fuente de descubrimiento y no se importan sin acordar su normalización. Las políticas iniciales se cargan desde `backend/db/seed.sql` al crear la base.
-
-El avance y los pendientes de la Fase 0 están en [`docs/fase-0.md`](docs/fase-0.md).
-Los datos del release y sus decisiones de integración están documentados en [`docs/pack-dh02.md`](docs/pack-dh02.md).
+| Persona | Módulos |
+|---|---|
+| Entrada y control | identidad-acceso, solicitudes-triage, adaptadores |
+| Núcleo de órdenes | ordenes-trabajo, ejecucion-evidencia, auditoria |
+| Cierre y vigilancia | notificaciones-plazos, reglas-politicas, reportes-tablero, planificador |

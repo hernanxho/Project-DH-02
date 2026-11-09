@@ -1,0 +1,82 @@
+# Fecha: 2026-11-08T20:16:37-05:00 · Node v22.23.4
+
+
+> dh02-backend@0.1.0 test
+> node --test
+
+TAP version 13
+# Subtest: solicitante consulta solo su solicitud y la relación no habilita administración
+ok 1 - solicitante consulta solo su solicitud y la relación no habilita administración
+  ---
+  duration_ms: 0.896158
+  type: 'test'
+  ...
+# Subtest: técnico y contratista acceden a órdenes propias, no a órdenes ajenas
+ok 2 - técnico y contratista acceden a órdenes propias, no a órdenes ajenas
+  ---
+  duration_ms: 0.226656
+  type: 'test'
+  ...
+# Subtest: representante queda limitado al edificio asignado
+ok 3 - representante queda limitado al edificio asignado
+  ---
+  duration_ms: 0.155553
+  type: 'test'
+  ...
+# Subtest: coordinación administra dentro del campus configurado
+ok 4 - coordinación administra dentro del campus configurado
+  ---
+  duration_ms: 0.178813
+  type: 'test'
+  ...
+# Subtest: la huella no depende del orden de las propiedades JSON
+ok 5 - la huella no depende del orden de las propiedades JSON
+  ---
+  duration_ms: 1.040989
+  type: 'test'
+  ...
+# Subtest: la huella distingue cambios de contenido y conserva el orden de las listas
+ok 6 - la huella distingue cambios de contenido y conserva el orden de las listas
+  ---
+  duration_ms: 0.262651
+  type: 'test'
+  ...
+# Subtest: flujo feliz: cada transición de la tabla es permitida para su actor
+ok 7 - flujo feliz: cada transición de la tabla es permitida para su actor
+  ---
+  duration_ms: 0.904142
+  type: 'test'
+  ...
+# Subtest: transiciones prohibidas
+ok 8 - transiciones prohibidas
+  ---
+  duration_ms: 0.198636
+  type: 'test'
+  ...
+# Subtest: un técnico no puede cerrar una orden resuelta
+ok 9 - un técnico no puede cerrar una orden resuelta
+  ---
+  duration_ms: 0.091976
+  type: 'test'
+  ...
+# Subtest: el cierre automático solo lo hace el sistema
+ok 10 - el cierre automático solo lo hace el sistema
+  ---
+  duration_ms: 0.114572
+  type: 'test'
+  ...
+# Subtest: resolver exige evidencia
+ok 11 - resolver exige evidencia
+  ---
+  duration_ms: 1.040558
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 220.339317

@@ -23,8 +23,8 @@ La Fase 1 cubre la entrada y el triage de solicitudes, el núcleo de órdenes, l
 - Las asignaciones de coordinación, supervisión y representante son una proyección inicial de los escenarios. Los compañeros deben confirmarlas; están señaladas en `docs/pack-dh02.md`.
 - La relación entre algunos identificadores de caso y órdenes del paquete (incluidos los pares ambiguos anotados en `docs/pack-dh02.md`) requiere decisión del equipo antes de importar registros como datos operativos.
 - Aplicar las migraciones necesarias en las bases de los otros integrantes. Una base nueva toma el esquema y seed actuales.
-- Los issues de Fase 2 (integración extremo a extremo y evidencia de PoC) siguen pendientes.
+- Fase 2/3 (integración y validación): completadas para la Evaluación 3 con `backend/integracion/flujos.spec.js` (9 pruebas contra MySQL real). Ver `docs/evaluacion-3/04-pruebas-y-limitaciones.md`.
 
 ## Criterio de estado
 
-La implementación funcional y la verificación local de los flujos de Fase 1 están completas. Para cerrar formalmente el trabajo compartido, el equipo debe confirmar los roles inferidos y aplicar las migraciones en cada entorno existente. La Fase 2 sigue pendiente.
+La implementación funcional y la verificación local de los flujos de Fase 1 están completas. Para cerrar formalmente el trabajo compartido, el equipo debe confirmar los roles inferidos y aplicar las migraciones en cada entorno existente. La Fase 2/3 se documenta en `docs/evaluacion-3/`.

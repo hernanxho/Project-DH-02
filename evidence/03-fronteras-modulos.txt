@@ -1,0 +1,8 @@
+# Fecha: 2026-11-08T20:13:55-05:00
+
+> dh02-backend@0.1.0 deps:check
+> depcruise src --config .dependency-cruiser.cjs
+
+
+✔ no dependency violations found (49 modules, 138 dependencies cruised)
+

@@ -8,9 +8,12 @@
     "dev": "node --watch --env-file=.env src/index.js",
     "start": "node --env-file=.env src/index.js",
     "test": "node --test",
-    "deps:check": "depcruise src --config .dependency-cruiser.cjs"
+    "deps:check": "depcruise src --config .dependency-cruiser.cjs",
+    "test:integracion": "node --env-file=.env --test --test-concurrency=1 integracion/flujos.spec.js"
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.19.2",
