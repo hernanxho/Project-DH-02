@@ -1,0 +1,4 @@
+material_entry_id,work_order_id,material_code,description,quantity,unit,estimated_unit_cost,procurement_required,recorded_at
+MAT-8001,WO-3004,LAMP-LED-18W,18W LED lamp,4,EA,8.50,false,2026-08-19T09:15:00Z
+MAT-8002,WO-3002,BREAKER-40A,40A circuit breaker,1,EA,45.00,true,2026-08-17T19:10:00Z
+MAT-8003,WO-3008,ANCHOR-M8,M8 wall anchor,12,EA,,false,2026-08-15T09:30:00Z

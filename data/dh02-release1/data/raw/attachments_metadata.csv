@@ -1,0 +1,4 @@
+attachment_id,request_id,work_order_id,uploaded_by,uploaded_at,filename,mime_type,size_bytes,access_classification
+ATT-9001,MNT-2001,WO-3001,HU-FAC-2101,2026-08-17T08:11:00Z,ceiling_leak_before.jpg,image/jpeg,145233,REQUEST_PARTICIPANTS
+ATT-9002,MNT-2004,WO-3003,HU-EMP-2203,2026-08-18T09:01:00Z,lab_alarm_panel.jpg,image/jpeg,120044,RESTRICTED
+ATT-9003,,WO-3004,TECH-001,2026-08-19T09:21:00Z,completed_lighting.jpg,,132991,REQUEST_PARTICIPANTS

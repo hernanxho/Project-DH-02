@@ -1,0 +1,134 @@
+{
+  "records": [
+    {
+      "location_code": "MAIN-B01-101",
+      "campus_code": "MAIN",
+      "building_code": "MAIN-B01",
+      "floor": "1",
+      "room_or_area": "101",
+      "location_type": "OFFICE",
+      "restricted_access": false,
+      "active": true
+    },
+    {
+      "location_code": "MAIN-B01-LOBBY",
+      "campus_code": "MAIN",
+      "building_code": "MAIN-B01",
+      "floor": "1",
+      "room_or_area": "Lobby",
+      "location_type": "COMMON_AREA",
+      "restricted_access": false,
+      "active": true
+    },
+    {
+      "location_code": "MAIN-B02-204",
+      "campus_code": "MAIN",
+      "building_code": "MAIN-B02",
+      "floor": "2",
+      "room_or_area": "204",
+      "location_type": "CLASSROOM",
+      "restricted_access": false,
+      "active": true
+    },
+    {
+      "location_code": "MAIN-B02-305",
+      "campus_code": "MAIN",
+      "building_code": "MAIN-B02",
+      "floor": "3",
+      "room_or_area": "305",
+      "location_type": "COMPUTER_LAB",
+      "restricted_access": true,
+      "active": true
+    },
+    {
+      "location_code": "MAIN-B02-ROOF",
+      "campus_code": "MAIN",
+      "building_code": "MAIN-B02",
+      "floor": "ROOF",
+      "room_or_area": "Roof",
+      "location_type": "ROOF",
+      "restricted_access": true,
+      "active": true
+    },
+    {
+      "location_code": "MAIN-B03-LAB201",
+      "campus_code": "MAIN",
+      "building_code": "MAIN-B03",
+      "floor": "2",
+      "room_or_area": "Laboratory 201",
+      "location_type": "LABORATORY",
+      "restricted_access": true,
+      "active": true
+    },
+    {
+      "location_code": "MAIN-B03-MECH",
+      "campus_code": "MAIN",
+      "building_code": "MAIN-B03",
+      "floor": "BASEMENT",
+      "room_or_area": "Mechanical Room",
+      "location_type": "MECHANICAL_ROOM",
+      "restricted_access": true,
+      "active": true
+    },
+    {
+      "location_code": "MAIN-B04-READING",
+      "campus_code": "MAIN",
+      "building_code": "MAIN-B04",
+      "floor": "2",
+      "room_or_area": "Reading Hall",
+      "location_type": "COMMON_AREA",
+      "restricted_access": false,
+      "active": true
+    },
+    {
+      "location_code": "MAIN-B05-108",
+      "campus_code": "MAIN",
+      "building_code": "MAIN-B05",
+      "floor": "1",
+      "room_or_area": "108",
+      "location_type": "OFFICE",
+      "restricted_access": false,
+      "active": true
+    },
+    {
+      "location_code": "MAIN-B06-POOL",
+      "campus_code": "MAIN",
+      "building_code": "MAIN-B06",
+      "floor": "1",
+      "room_or_area": "Pool Area",
+      "location_type": "SPORTS_AREA",
+      "restricted_access": true,
+      "active": true
+    },
+    {
+      "location_code": "NORTH-B01-110",
+      "campus_code": "NORTH",
+      "building_code": "NORTH-B01",
+      "floor": "1",
+      "room_or_area": "110",
+      "location_type": "CLASSROOM",
+      "restricted_access": false,
+      "active": true
+    },
+    {
+      "location_code": "NORTH-B02-HALL",
+      "campus_code": "NORTH",
+      "building_code": "NORTH-B02",
+      "floor": "1",
+      "room_or_area": "Multipurpose Hall",
+      "location_type": "EVENT_SPACE",
+      "restricted_access": false,
+      "active": true
+    },
+    {
+      "location_code": "MAIN-B99-STORE",
+      "campus_code": "MAIN",
+      "building_code": "MAIN-B99",
+      "floor": "1",
+      "room_or_area": "Storage",
+      "location_type": "STORAGE",
+      "restricted_access": true,
+      "active": false
+    }
+  ]
+}

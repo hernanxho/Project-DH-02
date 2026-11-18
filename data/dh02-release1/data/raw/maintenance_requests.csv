@@ -1,0 +1,13 @@
+request_id,requester_id,submitted_at,source_channel,campus,building,location,reported_category,description,requester_priority,validated_priority,request_status,work_order_id,duplicate_of,external_reference
+MNT-2001,HU-FAC-2101,2026-08-17T08:10:00Z,email,MAIN,Engineering,Room 204,Plumbing,Water is dripping from the ceiling near the front wall.,High,HIGH,Accepted,WO-3001,,MAIL-5401
+MNT-2002,HU-STU-2001,2026-08-17T08:17:00Z,web_form,Main Campus,Block 2,204,Roof leak,Water is entering classroom 204 from above.,Critical,,Duplicate,,MNT-2001,FORM-7220
+MNT-2003,SEC-ONCALL,2026-08-17T18:45:00Z,phone,MAIN,MAIN-B01,Lobby,Electrical,Burning smell reported near an electrical panel.,Emergency,CRITICAL,URGENT,WO-3002,,SEC-0817-44
+MNT-2004,HU-EMP-2203,2026-08-18T09:00:00Z,direct_message,MAIN,Science Building,Lab 201,Electrical,The laboratory ventilation alarm is sounding.,High,HIGH,Accepted,WO-3003,,MSG-3390
+MNT-2005,HU-FAC-2101,2026-08-18T10:30:00Z,web_form,MAIN,Central Library,Reading Hall,Lighting,Four ceiling lights are not working.,Normal,NORMAL,Accepted,WO-3004,,FORM-7231
+MNT-2006,HU-EMP-2201,2026-08-18T11:00:00Z,paper_form,NORTH,North Hall,,Door,"A door does not close correctly, exact room not included.",Normal,,More information required,,,PAPER-118
+MNT-2007,HU-STU-2001,2026-08-19T07:45:00Z,web_form,MAIN,Sports Center,Pool Area,Plumbing,The floor near the showers remains wet.,Critical,NORMAL,Accepted,WO-3005,,FORM-7240
+MNT-2008,HU-FAC-2101,2026-08-12T13:15:00Z,email,MAIN,Administration,101,Air conditioning,Office remains too warm during afternoon hours.,Normal,NORMAL,Closed,WO-3006,,MAIL-5360
+MNT-2009,HU-EMP-2201,2026-08-13T09:20:00Z,phone,MAIN,MAIN-B02,305,Lock,Access card reader and door do not allow entry.,High,HIGH,Accepted,WO-3007,,CALL-8110
+MNT-2010,HU-EMP-2201,2026-08-14T16:00:00Z,email,MAIN,Old Annex,Storage,General,Shelving is unstable in the old storage annex.,Low,LOW,Accepted,WO-3008,,MAIL-5378
+MNT-2011,HU-STU-2001,2026-08-20T09:10:00Z,web_form,MAIN,Engineering Building,Room 204,Painting,Ceiling paint is damaged after the earlier leak.,Normal,NORMAL,Accepted,WO-3009,,FORM-7251
+MNT-2012,HU-FAC-2101,2026-08-20T10:45:00Z,general_mailbox,MAIN,Student Services Center,108,Computer,Desktop computer cannot connect to the network.,High,,Redirected,,,MAIL-5440

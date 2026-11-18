@@ -1,0 +1,8 @@
+unit_id,unit_name,unit_type,active
+FAC-COORD,Facilities Coordination,COORDINATION,true
+FAC-ELEC,Electrical Maintenance,TECHNICAL,true
+FAC-PLUMB,Plumbing Maintenance,TECHNICAL,true
+FAC-HVAC,HVAC and Ventilation,TECHNICAL,true
+FAC-GENERAL,General Building Maintenance,TECHNICAL,true
+FAC-GROUNDS,Grounds and Exterior,TECHNICAL,true
+FAC-SUP,Maintenance Supervision,SUPERVISION,true

@@ -1,0 +1,21 @@
+# Base de datos MySQL para desarrollo (E2-ADR-001: una base relacional, InnoDB).
+# Uso:  docker compose up -d
+# Al crearse por primera vez, ejecuta db/schema.sql y db/seed.sql automáticamente.
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: dh02-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: dh02
+      MYSQL_USER: dh02
+      MYSQL_PASSWORD: dh02
+    ports:
+      - "3306:3306"
+    volumes:
+      - dh02_mysql:/var/lib/mysql
+      - ./backend/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./backend/db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+volumes:
+  dh02_mysql:

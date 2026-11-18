@@ -1,0 +1,24 @@
+{
+  "scenario_id": "DH02-SC-02",
+  "title": "Duplicate reports of the same water incident",
+  "actors": [
+    "faculty_requester",
+    "student_requester",
+    "facilities_coordinator"
+  ],
+  "initial_records": [
+    "MNT-2001",
+    "MNT-2002",
+    "WO-3001"
+  ],
+  "known_conditions": [
+    "Two users reported the same apparent failure within seven minutes.",
+    "The reports use different building names and categories.",
+    "The duplicate report remains useful evidence of impact."
+  ],
+  "questions": [
+    "What evidence is sufficient to link the reports?",
+    "How should the principal request and duplicate report be related?",
+    "How should duplicate counts contribute to operational reporting?"
+  ]
+}

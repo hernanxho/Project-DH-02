@@ -1,0 +1,163 @@
+{
+  "project_code": "DH-02",
+  "project_name": "Campus Maintenance and Work Order Management",
+  "release": "release-1-discovery",
+  "synthetic_data_only": true,
+  "files": [
+    {
+      "path": "README.md",
+      "size_bytes": 1098,
+      "sha256": "222227485aa342515513a39c895f3151270074f62dcd37489db0db0d47dd8923"
+    },
+    {
+      "path": "data/events/.gitkeep",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "data/generated/.gitkeep",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "data/raw/assignments.csv",
+      "size_bytes": 1008,
+      "sha256": "9da32362433b1483f33eddea69e63031fb794cf5886d7a0109c4b54dab383fad"
+    },
+    {
+      "path": "data/raw/attachments_metadata.csv",
+      "size_bytes": 449,
+      "sha256": "9ce43547a24db1b1f590bcc40352ebeadddfc2e5accf6cdfc8ba0e08c07c392f"
+    },
+    {
+      "path": "data/raw/blocked_work.csv",
+      "size_bytes": 579,
+      "sha256": "aa425481dd85f42728571ebd088614a9abf06aea882029c1732a10e819b5e15f"
+    },
+    {
+      "path": "data/raw/completion_confirmations.csv",
+      "size_bytes": 302,
+      "sha256": "db700bc54914eeb0b44822892932862ed578aa3f86ae68efbed21bbc2aa3bb08"
+    },
+    {
+      "path": "data/raw/maintenance_requests.csv",
+      "size_bytes": 2307,
+      "sha256": "737720032fa24c2d0134d2df6a909854ce9adead51d2a1d74495d801f2203e71"
+    },
+    {
+      "path": "data/raw/materials_used.csv",
+      "size_bytes": 371,
+      "sha256": "99e6c8f0b07aaa151e288a7e7a0a9670d1f4408c519c26be6cd86bc006f217e4"
+    },
+    {
+      "path": "data/raw/work_orders.csv",
+      "size_bytes": 1514,
+      "sha256": "8c794ceb2f08fe925b8ec4c0cb72184025d9010bbbc61393e7d42c2794c09d77"
+    },
+    {
+      "path": "data/raw/work_updates.csv",
+      "size_bytes": 1559,
+      "sha256": "c398ee5505617247119d5f44ea4957f33e5f7da54a413852e89b6b5d272d1917"
+    },
+    {
+      "path": "data/reference/buildings.csv",
+      "size_bytes": 783,
+      "sha256": "d764c79ff324c2247de8207e3b5c82fe667d2877232d440b90e20e39d2f6f512"
+    },
+    {
+      "path": "data/reference/campuses.csv",
+      "size_bytes": 133,
+      "sha256": "c7704894e99aed8b7d15aca092ad562435322e76fa49d32f958eede40b67b9e7"
+    },
+    {
+      "path": "data/reference/facilities_units.csv",
+      "size_bytes": 386,
+      "sha256": "683d9f33036789b40affbea3cd13daabec28a7a9906a68240ff1e8158d8e691d"
+    },
+    {
+      "path": "data/reference/locations.csv",
+      "size_bytes": 904,
+      "sha256": "408d0b5c8a800a0a01898c04f02da41a794c11f0473834c5b87061f824361b38"
+    },
+    {
+      "path": "data/reference/maintenance_categories.csv",
+      "size_bytes": 570,
+      "sha256": "8daec06c0fc7f316811d922ccc0f4388b52a89d3c5bf6401b666204ca79966ba"
+    },
+    {
+      "path": "data/reference/mock_identities.json",
+      "size_bytes": 1565,
+      "sha256": "6da06f65fd3ca89d6ff08fd778b6c92d8f85f3d8753d0300183bb3049ad03934"
+    },
+    {
+      "path": "data/reference/priority_levels.csv",
+      "size_bytes": 192,
+      "sha256": "41a11739ddf66ee3bf99201ffeaa04939bfae0c34ff88da71ce7fc7006fa5672"
+    },
+    {
+      "path": "data/reference/technician_skills.csv",
+      "size_bytes": 671,
+      "sha256": "2f434b0082da701e48dd791ef7b75577e57d738aa87c9251c2b4f725b5b758ce"
+    },
+    {
+      "path": "data/reference/technicians.csv",
+      "size_bytes": 623,
+      "sha256": "c69330fb20b2cdeb397e4de53eb24983f7774270940c7e766debaccb0726d62b"
+    },
+    {
+      "path": "data/scenarios/dh02-sc-01.json",
+      "size_bytes": 668,
+      "sha256": "c2193f0e6434826581936d87f70b4492f7ba7fb93dc26a0420394201ed21c86a"
+    },
+    {
+      "path": "data/scenarios/dh02-sc-02.json",
+      "size_bytes": 716,
+      "sha256": "b5fe3c09ba741e0a694c6a364d52ec3d31ea4557c8a6680aa0b146d8ba882325"
+    },
+    {
+      "path": "data/scenarios/dh02-sc-03.json",
+      "size_bytes": 672,
+      "sha256": "0ddabc60ad56296cbea0bcbd82adcc0452341be729c7a11dff7b17130c79b107"
+    },
+    {
+      "path": "data/scenarios/dh02-sc-04.json",
+      "size_bytes": 721,
+      "sha256": "39eade3dd51dbf3ef4c121fc8c455cb50ade7fad5c09fa24fcbcae699425503c"
+    },
+    {
+      "path": "data/scenarios/dh02-sc-05.json",
+      "size_bytes": 747,
+      "sha256": "13973a9106b4023039fcf37eecc63dfcafea11274bc6dec5252e7e0a918a0afd"
+    },
+    {
+      "path": "data-dictionary.md",
+      "size_bytes": 3826,
+      "sha256": "bfe37ecc8127e03635ab72c33c98ee131180685679d66a102c34c7543f14ba2c"
+    },
+    {
+      "path": "dataset-notes.md",
+      "size_bytes": 1341,
+      "sha256": "af70ad1d3bfb166590a63cfa0d1c2f33512c5eedbf3daa50aca0ed12f661d568"
+    },
+    {
+      "path": "mocks/campus_location_directory/failure-responses.json",
+      "size_bytes": 569,
+      "sha256": "4222cb121d36e4e3530d7d3842359584a323493e78bc020e239375b2a5ee2e57"
+    },
+    {
+      "path": "mocks/campus_location_directory/locations.json",
+      "size_bytes": 3440,
+      "sha256": "e6101b183698f1e298a23a2992b93d1fd46af0aa378da7527e908a5907dba754"
+    },
+    {
+      "path": "mocks/campus_location_directory/service-contract.md",
+      "size_bytes": 489,
+      "sha256": "12504ed4171aa67a17ca4a3cc685e76d59f8c805bfd9b2676edd4d0f3e81bddc"
+    },
+    {
+      "path": "scenario-index.md",
+      "size_bytes": 482,
+      "sha256": "51d55ab0941571a692b2de1173a453d3f70f7fac5cc1a77e788a8cf7179c5af5"
+    }
+  ]
+}

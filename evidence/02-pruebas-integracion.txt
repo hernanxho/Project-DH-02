@@ -1,0 +1,370 @@
+# Fecha: 2026-11-08T20:16:35-05:00
+# Node v22.23.4 · MySQL 8.0.46-0ubuntu0.24.04.4 · base recién creada con schema.sql + seed.sql
+
+
+> dh02-backend@0.1.0 test:integracion
+> node --env-file=.env --test --test-concurrency=1 integracion/flujos.spec.js
+
+TAP version 13
+# Subtest: E2E · RF-01→RF-09: reporte → triage → orden → ejecución → bloqueo → resolución → cierre confirmado
+ok 1 - E2E · RF-01→RF-09: reporte → triage → orden → ejecución → bloqueo → resolución → cierre confirmado
+  ---
+  duration_ms: 195.022311
+  type: 'test'
+  ...
+# Subtest: RF-09 · el afectado rechaza el cierre y la orden vuelve a EN_PROGRESO
+ok 2 - RF-09 · el afectado rechaza el cierre y la orden vuelve a EN_PROGRESO
+  ---
+  duration_ms: 48.997745
+  type: 'test'
+  ...
+# Subtest: QS-01 / RF-08 · dos reasignaciones simultáneas con la misma versión: una gana, la otra recibe 409
+ok 3 - QS-01 / RF-08 · dos reasignaciones simultáneas con la misma versión: una gana, la otra recibe 409
+  ---
+  duration_ms: 32.881864
+  type: 'test'
+  ...
+# Subtest: QS-04 / RF-13 · acciones no autorizadas devuelven 403 y no escriben nada
+ok 4 - QS-04 / RF-13 · acciones no autorizadas devuelven 403 y no escriben nada
+  ---
+  duration_ms: 33.356539
+  type: 'test'
+  ...
+# Subtest: QS-02 · carrera entre confirmación tardía y cierre automático: un solo cierre, una sola auditoría
+ok 5 - QS-02 · carrera entre confirmación tardía y cierre automático: un solo cierre, una sola auditoría
+  ---
+  duration_ms: 50.443069
+  type: 'test'
+  ...
+# Subtest: QS-06 · reenviar 3 veces el mismo comando produce un solo cambio y una sola auditoría
+ok 6 - QS-06 · reenviar 3 veces el mismo comando produce un solo cambio y una sola auditoría
+  ---
+  duration_ms: 43.770834
+  type: 'test'
+  ...
+# [planificador] notificación 5d7dc750-179c-4073-94e6-932b3055073b falló: Servicio de notificación no disponible
+# [planificador] notificación 59248123-2e06-4635-8cad-6faa0a7c05df falló: Servicio de notificación no disponible
+# [planificador] notificación c1fa2cfc-0ac6-4bd7-b207-40bc2609cb87 falló: Servicio de notificación no disponible
+# [planificador] notificación 0056ccf7-c0f5-479a-9e38-9851d5b1ffe5 falló: Servicio de notificación no disponible
+# [planificador] notificación 553d1595-69a2-4e96-957f-29551fd5cefc falló: Servicio de notificación no disponible
+# [planificador] notificación 81495e8c-17dc-42ac-9c53-0d9e014ba448 falló: Servicio de notificación no disponible
+# [planificador] notificación 60c0b7c9-c67e-423c-b4ec-d161dc688bde falló: Servicio de notificación no disponible
+# [planificador] notificación adbf97bf-30a8-4700-bf62-3061e65d43b1 falló: Servicio de notificación no disponible
+# [planificador] notificación e96bac10-0d1c-4203-a1ff-1a1821a39ab2 falló: Servicio de notificación no disponible
+# [planificador] notificación 062835e3-d327-408f-abff-c971eb76f9c8 falló: Servicio de notificación no disponible
+# [planificador] notificación 0b29f579-8a70-4b81-89fb-5f8e8296a7f9 falló: Servicio de notificación no disponible
+# [planificador] notificación c171a0aa-eb54-402b-a61d-d48651e2edd8 falló: Servicio de notificación no disponible
+# [planificador] notificación a43ffb37-f1e0-4209-85da-f90312842313 falló: Servicio de notificación no disponible
+# [planificador] notificación 16f5a624-0388-4796-9e11-605d57db0322 falló: Servicio de notificación no disponible
+# [planificador] notificación 8cea7c74-83d6-4fb0-968b-a3bd75768ba1 falló: Servicio de notificación no disponible
+# [planificador] notificación a841f82e-5ac1-41a0-aebf-24a684a049aa falló: Servicio de notificación no disponible
+# [planificador] notificación 97387993-a400-4bc0-984c-7eceb1430d60 falló: Servicio de notificación no disponible
+# [planificador] notificación 395360d0-2e3d-48ab-bde3-99acd5a520fa falló: Servicio de notificación no disponible
+# [planificador] notificación b7677fbd-5da5-414d-8acc-4531903565ef falló: Servicio de notificación no disponible
+# [planificador] notificación 5152b27b-e297-4e35-96e0-073012b7afb1 falló: Servicio de notificación no disponible
+# [planificador] notificación a8959c17-31e8-4da5-9d6b-d42f456ebf62 falló: Servicio de notificación no disponible
+# [planificador] notificación 297ae4c9-a9e4-4449-846b-78fd679cff20 falló: Servicio de notificación no disponible
+# [planificador] notificación 102899e4-2dc6-457c-9479-f0442cfef76e falló: Servicio de notificación no disponible
+# [planificador] notificación 192353da-cb2e-4ab9-a2cd-2dd412c5062c falló: Servicio de notificación no disponible
+# [planificador] notificación d8e673aa-47ce-4135-8680-a2302c6bc4b2 falló: Servicio de notificación no disponible
+# [planificador] notificación ba4cfef3-cb32-4dc4-acfc-2d1520b12818 falló: Servicio de notificación no disponible
+# [planificador] notificación 69c209b9-9a49-48c6-8669-5b5ac61a54b4 falló: Servicio de notificación no disponible
+# [planificador] notificación d339d7ca-e327-46fe-b981-326c92396286 falló: Servicio de notificación no disponible
+# [planificador] notificación ab93b87f-ae5c-481e-9e3d-4a62a4c7942a falló: Servicio de notificación no disponible
+# [planificador] notificación 7c00bbac-fe90-45f0-a2b7-ad28db3e9d27 falló: Servicio de notificación no disponible
+# [planificador] notificación df72432a-ce50-407b-b05b-a528b67c74b7 falló: Servicio de notificación no disponible
+# [planificador] notificación 7579c0c7-52b4-44cf-a26a-b45d492ada52 falló: Servicio de notificación no disponible
+# [planificador] notificación e6743e96-bb2e-4446-bcc7-a556b076d6c7 falló: Servicio de notificación no disponible
+# [planificador] notificación 01ca2eea-f0d0-42e1-8151-7962e58d1898 falló: Servicio de notificación no disponible
+# [planificador] notificación 83911ebd-f2a9-4edb-9ec6-100709c8a0ec falló: Servicio de notificación no disponible
+# [planificador] notificación db3298de-93c6-4ac3-b6ec-bd4d4f721820 falló: Servicio de notificación no disponible
+# [planificador] notificación 3bd3a546-0a3c-4152-9298-a2ec26a4ed79 falló: Servicio de notificación no disponible
+# [planificador] notificación 9e52bbf4-3440-4b12-aaa4-2ae2bf44d638 falló: Servicio de notificación no disponible
+# [planificador] notificación 477a6a92-69ae-4ff0-b0b6-7f9982d1eaf8 falló: Servicio de notificación no disponible
+# [planificador] notificación 68da543d-3f78-4e96-98d3-90c27df9b189 falló: Servicio de notificación no disponible
+# [planificador] notificación 94b727a1-e775-454d-87d1-58a1bca9bef7 falló: Servicio de notificación no disponible
+# [planificador] notificación 30ab042f-8cb5-45c3-9ca3-8c3f3935562b falló: Servicio de notificación no disponible
+# [planificador] notificación b4bf0e9f-56f1-4671-a294-46f56f41538a falló: Servicio de notificación no disponible
+# [planificador] notificación 0d84f9ba-4bf6-432c-aa9d-38ecf51b1297 falló: Servicio de notificación no disponible
+# [planificador] notificación b1efdb22-0137-45a4-ad3b-cabd1396578e falló: Servicio de notificación no disponible
+# [notificación simulada] → HU-STU-2001: SOLICITUD_RECIBIDA {
+#   estado: 'EN_REVISION',
+#   solicitudId: 'MR-66EFF95F2C88',
+#   notificacionId: '5d7dc750-179c-4073-94e6-932b3055073b'
+# }
+# [notificación simulada] → HU-STU-2001: SOLICITUD_VALIDADA {
+#   estado: 'VALIDADA',
+#   urgencia: 'Alta',
+#   solicitudId: 'MR-66EFF95F2C88',
+#   notificacionId: '59248123-2e06-4635-8cad-6faa0a7c05df'
+# }
+# [notificación simulada] → HU-STU-2001: ORDEN_ASIGNADA {
+#   estado: 'ASIGNADA',
+#   ordenId: 'WO-D8D3D5CB8953',
+#   solicitudId: 'MR-66EFF95F2C88',
+#   notificacionId: 'c1fa2cfc-0ac6-4bd7-b207-40bc2609cb87'
+# }
+# [notificación simulada] → TECH-001: ORDEN_RECIBIDA {
+#   ordenId: 'WO-D8D3D5CB8953',
+#   prioridad: 'Alta',
+#   ubicacionCodigo: 'MAIN-B01-101',
+#   notificacionId: '0056ccf7-c0f5-479a-9e38-9851d5b1ffe5'
+# }
+# [notificación simulada] → HU-STU-2001: ORDEN_ESTADO_CAMBIADO {
+#   estado: 'EN_PROGRESO',
+#   ordenId: 'WO-D8D3D5CB8953',
+#   notificacionId: '553d1595-69a2-4e96-957f-29551fd5cefc'
+# }
+# [notificación simulada] → HU-STU-2001: ORDEN_ESTADO_CAMBIADO {
+#   estado: 'BLOQUEADA_MATERIALES',
+#   ordenId: 'WO-D8D3D5CB8953',
+#   notificacionId: '81495e8c-17dc-42ac-9c53-0d9e014ba448'
+# }
+# [notificación simulada] → HU-EMP-2202: ORDEN_BLOQUEADA {
+#   estado: 'BLOQUEADA_MATERIALES',
+#   ordenId: 'WO-D8D3D5CB8953',
+#   notificacionId: '60c0b7c9-c67e-423c-b4ec-d161dc688bde'
+# }
+# [notificación simulada] → HU-STU-2001: ORDEN_ESTADO_CAMBIADO {
+#   estado: 'EN_PROGRESO',
+#   ordenId: 'WO-D8D3D5CB8953',
+#   notificacionId: 'adbf97bf-30a8-4700-bf62-3061e65d43b1'
+# }
+# [notificación simulada] → HU-STU-2001: ORDEN_ESTADO_CAMBIADO {
+#   estado: 'RESUELTA',
+#   ordenId: 'WO-D8D3D5CB8953',
+#   notificacionId: 'e96bac10-0d1c-4203-a1ff-1a1821a39ab2'
+# }
+# [notificación simulada] → TECH-001: CIERRE_CONFIRMADO {
+#   estado: 'CERRADA',
+#   ordenId: 'WO-D8D3D5CB8953',
+#   tipoCierre: 'CONFIRMADO',
+#   notificacionId: '062835e3-d327-408f-abff-c971eb76f9c8'
+# }
+# [notificación simulada] → HU-STU-2001: CIERRE_CONFIRMADO {
+#   estado: 'CERRADA',
+#   ordenId: 'WO-D8D3D5CB8953',
+#   tipoCierre: 'CONFIRMADO',
+#   notificacionId: '0b29f579-8a70-4b81-89fb-5f8e8296a7f9'
+# }
+# [notificación simulada] → HU-STU-2001: SOLICITUD_RECIBIDA {
+#   estado: 'EN_REVISION',
+#   solicitudId: 'MR-0EB6C653FCCF',
+#   notificacionId: 'c171a0aa-eb54-402b-a61d-d48651e2edd8'
+# }
+# [notificación simulada] → HU-STU-2001: SOLICITUD_VALIDADA {
+#   estado: 'VALIDADA',
+#   urgencia: 'Alta',
+#   solicitudId: 'MR-0EB6C653FCCF',
+#   notificacionId: 'a43ffb37-f1e0-4209-85da-f90312842313'
+# }
+# [notificación simulada] → TECH-001: ORDEN_RECIBIDA {
+#   ordenId: 'WO-503EAA1C22F1',
+#   prioridad: 'Alta',
+#   ubicacionCodigo: 'MAIN-B01-101',
+#   notificacionId: '16f5a624-0388-4796-9e11-605d57db0322'
+# }
+# [notificación simulada] → HU-STU-2001: ORDEN_ASIGNADA {
+#   estado: 'ASIGNADA',
+#   ordenId: 'WO-503EAA1C22F1',
+#   solicitudId: 'MR-0EB6C653FCCF',
+#   notificacionId: '8cea7c74-83d6-4fb0-968b-a3bd75768ba1'
+# }
+# [notificación simulada] → HU-STU-2001: ORDEN_ESTADO_CAMBIADO {
+#   estado: 'EN_PROGRESO',
+#   ordenId: 'WO-503EAA1C22F1',
+#   notificacionId: 'a841f82e-5ac1-41a0-aebf-24a684a049aa'
+# }
+# [notificación simulada] → HU-STU-2001: ORDEN_ESTADO_CAMBIADO {
+#   estado: 'RESUELTA',
+#   ordenId: 'WO-503EAA1C22F1',
+#   notificacionId: '97387993-a400-4bc0-984c-7eceb1430d60'
+# }
+# [notificación simulada] → TECH-001: CIERRE_RECHAZADO {
+#   estado: 'EN_PROGRESO',
+#   motivo: 'El tomacorriente sigue sin funcionar',
+#   ordenId: 'WO-503EAA1C22F1',
+#   notificacionId: '395360d0-2e3d-48ab-bde3-99acd5a520fa'
+# }
+# [notificación simulada] → HU-STU-2001: CIERRE_RECHAZADO {
+#   estado: 'EN_PROGRESO',
+#   motivo: 'El tomacorriente sigue sin funcionar',
+#   ordenId: 'WO-503EAA1C22F1',
+#   notificacionId: 'b7677fbd-5da5-414d-8acc-4531903565ef'
+# }
+# [notificación simulada] → HU-STU-2001: SOLICITUD_RECIBIDA {
+#   estado: 'EN_REVISION',
+#   solicitudId: 'MR-53876945BE50',
+#   notificacionId: '5152b27b-e297-4e35-96e0-073012b7afb1'
+# }
+# [notificación simulada] → HU-STU-2001: SOLICITUD_VALIDADA {
+#   estado: 'VALIDADA',
+#   urgencia: 'Alta',
+#   solicitudId: 'MR-53876945BE50',
+#   notificacionId: 'a8959c17-31e8-4da5-9d6b-d42f456ebf62'
+# }
+# [notificación simulada] → TECH-001: ORDEN_RECIBIDA {
+#   ordenId: 'WO-C521FFF33933',
+#   prioridad: 'Alta',
+#   ubicacionCodigo: 'MAIN-B01-101',
+#   notificacionId: '297ae4c9-a9e4-4449-846b-78fd679cff20'
+# }
+# [notificación simulada] → HU-STU-2001: ORDEN_ASIGNADA {
+#   estado: 'ASIGNADA',
+#   ordenId: 'WO-C521FFF33933',
+#   solicitudId: 'MR-53876945BE50',
+#   notificacionId: '102899e4-2dc6-457c-9479-f0442cfef76e'
+# }
+# [notificación simulada] → TECH-001: ORDEN_REASIGNADA {
+#   ordenId: 'WO-C521FFF33933',
+#   responsableNuevo: 'TECH-002',
+#   responsableAnterior: 'TECH-001',
+#   notificacionId: '192353da-cb2e-4ab9-a2cd-2dd412c5062c'
+# }
+# [notificación simulada] → TECH-002: ORDEN_REASIGNADA {
+#   ordenId: 'WO-C521FFF33933',
+#   responsableNuevo: 'TECH-002',
+#   responsableAnterior: 'TECH-001',
+#   notificacionId: 'd8e673aa-47ce-4135-8680-a2302c6bc4b2'
+# }
+# [notificación simulada] → HU-STU-2001: SOLICITUD_RECIBIDA {
+#   estado: 'EN_REVISION',
+#   solicitudId: 'MR-14F6E32F71F7',
+#   notificacionId: 'ba4cfef3-cb32-4dc4-acfc-2d1520b12818'
+# }
+# [notificación simulada] → HU-STU-2001: SOLICITUD_VALIDADA {
+#   estado: 'VALIDADA',
+#   urgencia: 'Alta',
+#   solicitudId: 'MR-14F6E32F71F7',
+#   notificacionId: '69c209b9-9a49-48c6-8669-5b5ac61a54b4'
+# }
+# [notificación simulada] → HU-STU-2001: ORDEN_ASIGNADA {
+#   estado: 'ASIGNADA',
+#   ordenId: 'WO-A626C8106A38',
+#   solicitudId: 'MR-14F6E32F71F7',
+#   notificacionId: 'd339d7ca-e327-46fe-b981-326c92396286'
+# }
+# [notificación simulada] → TECH-001: ORDEN_RECIBIDA {
+#   ordenId: 'WO-A626C8106A38',
+#   prioridad: 'Alta',
+#   ubicacionCodigo: 'MAIN-B01-101',
+#   notificacionId: 'ab93b87f-ae5c-481e-9e3d-4a62a4c7942a'
+# }
+# [notificación simulada] → HU-STU-2001: SOLICITUD_RECIBIDA {
+#   estado: 'EN_REVISION',
+#   solicitudId: 'MR-8F248CF2EF55',
+#   notificacionId: '7c00bbac-fe90-45f0-a2b7-ad28db3e9d27'
+# }
+# [notificación simulada] → HU-STU-2001: SOLICITUD_VALIDADA {
+#   estado: 'VALIDADA',
+#   urgencia: 'Alta',
+#   solicitudId: 'MR-8F248CF2EF55',
+#   notificacionId: 'df72432a-ce50-407b-b05b-a528b67c74b7'
+# }
+# [notificación simulada] → TECH-001: ORDEN_RECIBIDA {
+#   ordenId: 'WO-74A6DDA1B950',
+#   prioridad: 'Alta',
+#   ubicacionCodigo: 'MAIN-B01-101',
+#   notificacionId: '7579c0c7-52b4-44cf-a26a-b45d492ada52'
+# }
+# [notificación simulada] → HU-STU-2001: ORDEN_ASIGNADA {
+#   estado: 'ASIGNADA',
+#   ordenId: 'WO-74A6DDA1B950',
+#   solicitudId: 'MR-8F248CF2EF55',
+#   notificacionId: 'e6743e96-bb2e-4446-bcc7-a556b076d6c7'
+# }
+# [notificación simulada] → HU-STU-2001: ORDEN_ESTADO_CAMBIADO {
+#   estado: 'EN_PROGRESO',
+#   ordenId: 'WO-74A6DDA1B950',
+#   notificacionId: '01ca2eea-f0d0-42e1-8151-7962e58d1898'
+# }
+# [notificación simulada] → HU-STU-2001: ORDEN_ESTADO_CAMBIADO {
+#   estado: 'RESUELTA',
+#   ordenId: 'WO-74A6DDA1B950',
+#   notificacionId: '83911ebd-f2a9-4edb-9ec6-100709c8a0ec'
+# }
+# [notificación simulada] → HU-STU-2001: CIERRE_AUTOMATICO {
+#   estado: 'CERRADA',
+#   ordenId: 'WO-74A6DDA1B950',
+#   tipoCierre: 'AUTOMATICO',
+#   puedeReabrir: true,
+#   notificacionId: 'db3298de-93c6-4ac3-b6ec-bd4d4f721820'
+# }
+# [notificación simulada] → HU-STU-2001: SOLICITUD_RECIBIDA {
+#   estado: 'EN_REVISION',
+#   solicitudId: 'MR-B36854242955',
+#   notificacionId: '3bd3a546-0a3c-4152-9298-a2ec26a4ed79'
+# }
+# [notificación simulada] → HU-STU-2001: SOLICITUD_VALIDADA {
+#   estado: 'VALIDADA',
+#   urgencia: 'Alta',
+#   solicitudId: 'MR-B36854242955',
+#   notificacionId: '9e52bbf4-3440-4b12-aaa4-2ae2bf44d638'
+# }
+# [notificación simulada] → HU-STU-2001: ORDEN_ASIGNADA {
+#   estado: 'ASIGNADA',
+#   ordenId: 'WO-146C10492394',
+#   solicitudId: 'MR-B36854242955',
+#   notificacionId: '477a6a92-69ae-4ff0-b0b6-7f9982d1eaf8'
+# }
+# [notificación simulada] → TECH-001: ORDEN_RECIBIDA {
+#   ordenId: 'WO-146C10492394',
+#   prioridad: 'Alta',
+#   ubicacionCodigo: 'MAIN-B01-101',
+#   notificacionId: '68da543d-3f78-4e96-98d3-90c27df9b189'
+# }
+# [notificación simulada] → HU-STU-2001: ORDEN_ESTADO_CAMBIADO {
+#   estado: 'EN_PROGRESO',
+#   ordenId: 'WO-146C10492394',
+#   notificacionId: '94b727a1-e775-454d-87d1-58a1bca9bef7'
+# }
+# [notificación simulada] → HU-STU-2001: SOLICITUD_RECIBIDA {
+#   estado: 'EN_REVISION',
+#   solicitudId: 'MR-AA0EB168ABF1',
+#   notificacionId: '30ab042f-8cb5-45c3-9ca3-8c3f3935562b'
+# }
+# [notificación simulada] → HU-STU-2001: SOLICITUD_VALIDADA {
+#   estado: 'VALIDADA',
+#   urgencia: 'Alta',
+#   solicitudId: 'MR-AA0EB168ABF1',
+#   notificacionId: 'b4bf0e9f-56f1-4671-a294-46f56f41538a'
+# }
+# [notificación simulada] → TECH-001: ORDEN_RECIBIDA {
+#   ordenId: 'WO-17133FB1A955',
+#   prioridad: 'Alta',
+#   ubicacionCodigo: 'MAIN-B01-101',
+#   notificacionId: '0d84f9ba-4bf6-432c-aa9d-38ecf51b1297'
+# }
+# [notificación simulada] → HU-STU-2001: ORDEN_ASIGNADA {
+#   estado: 'ASIGNADA',
+#   ordenId: 'WO-17133FB1A955',
+#   solicitudId: 'MR-AA0EB168ABF1',
+#   notificacionId: 'b1efdb22-0137-45a4-ad3b-cabd1396578e'
+# }
+# Subtest: QS-07 · con el servicio de notificación caído el cambio se confirma y la notificación se entrega después, una vez
+ok 7 - QS-07 · con el servicio de notificación caído el cambio se confirma y la notificación se entrega después, una vez
+  ---
+  duration_ms: 183.433003
+  type: 'test'
+  ...
+# Subtest: BR-12 · la auditoría es de solo anexado: la base rechaza modificarla
+ok 8 - BR-12 · la auditoría es de solo anexado: la base rechaza modificarla
+  ---
+  duration_ms: 20.063359
+  type: 'test'
+  ...
+# Subtest: QS-05 / E2-ADR-006 · cambiar la matriz de evidencia por configuración cambia el comportamiento sin tocar código
+ok 9 - QS-05 / E2-ADR-006 · cambiar la matriz de evidencia por configuración cambia el comportamiento sin tocar código
+  ---
+  duration_ms: 65.953662
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 968.698017

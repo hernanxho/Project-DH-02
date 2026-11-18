@@ -1,0 +1,15 @@
+category_code,display_name,active
+ELECTRICAL,Electrical,true
+PLUMBING,Plumbing,true
+HVAC,Air conditioning and ventilation,true
+CARPENTRY,Carpentry and furniture,true
+DOORS_LOCKS,"Doors, locks, and windows",true
+LIGHTING,Lighting,true
+ROOF_WATER,Roofs and water infiltration,true
+SURFACE_REPAIR,Painting and surface repair,true
+CLASSROOM,Classroom infrastructure,true
+LAB_INFRA,Laboratory infrastructure,true
+GROUNDS,Grounds and exterior areas,true
+ACCESSIBILITY,Accessibility infrastructure,true
+GENERAL,General building maintenance,true
+OTHER,Other,true

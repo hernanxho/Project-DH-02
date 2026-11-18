@@ -1,0 +1,26 @@
+{
+  "scenario_id": "DH02-SC-05",
+  "title": "Technically completed work reopened by the requester",
+  "actors": [
+    "faculty_requester",
+    "hvac_technician",
+    "maintenance_supervisor"
+  ],
+  "initial_records": [
+    "MNT-2008",
+    "WO-3006",
+    "UPD-6008",
+    "UPD-6009",
+    "CNF-10002"
+  ],
+  "known_conditions": [
+    "The requester initially confirmed that the condition improved.",
+    "The room later became too warm again.",
+    "The prior completion and closure evidence must remain available."
+  ],
+  "questions": [
+    "How should technical completion differ from resolution and closure?",
+    "Which historical values must remain immutable after reopening?",
+    "Should a reopened work order retain the same identity?"
+  ]
+}

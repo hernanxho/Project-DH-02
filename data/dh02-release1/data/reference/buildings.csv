@@ -1,0 +1,10 @@
+building_code,campus_code,building_name,building_type,active,known_aliases
+MAIN-B01,MAIN,Administration Building,ADMINISTRATIVE,true,Administration|Admin Building|B01
+MAIN-B02,MAIN,Engineering Building,ACADEMIC,true,Engineering|Eng. Building|Block 2
+MAIN-B03,MAIN,Science and Laboratories,LABORATORY,true,Science Building|Labs|B03
+MAIN-B04,MAIN,Central Library,LIBRARY,true,Library|Main Library|B04
+MAIN-B05,MAIN,Student Services Center,STUDENT_SERVICE,true,Student Center|Services Center|B05
+MAIN-B06,MAIN,Sports Complex,SPORTS,true,Sports Center|Gym|B06
+NORTH-B01,NORTH,North Academic Building,ACADEMIC,true,North Academic|N-B01
+NORTH-B02,NORTH,North Multipurpose Building,MULTIPURPOSE,true,North Hall|N-B02
+MAIN-B99,MAIN,Former Storage Annex,STORAGE,false,Old Annex|B99
